@@ -12,6 +12,7 @@ import {
     Text,
     Card,
 } from "react-native-paper";
+import CartDrawer from "./CartDrawer";
 
 const searchCategories = [
     { label: "Tất Cả", value: "all" },
@@ -92,16 +93,30 @@ const sampleBooks = [
 ];
 
 export default function CategoryScreen() {
-    const [visible, setVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(searchCategories[0]);
 
-    const openMenu = () => setVisible(true);
-    const closeMenu = () => setVisible(false);
+    const openMenu = () => setMenuVisible(true);
+    const closeMenu = () => setMenuVisible(false);
 
+    const [cartVisible, setCartVisible] = useState(false);
+    const [cartItems, setCartItems] = useState(sampleBooks);
+
+    const addToCart = (book) => {
+        // add to cart
+    };
+
+    const updateCartItemQuantity = (itemId, newQuantity) => {
+        // update cart items
+    };
+
+    const removeFromCart = (itemId) => {
+        // remove cart items
+    };
 
     const renderBookItem = ({ item }) => (
         <TouchableOpacity style={styles.bookItem}>
-            <Card style={styles.bookCard}>
+            <Card>
                 <Card.Cover source={{ uri: item.image }} style={styles.bookImage} />
                 <Card.Content>
                     <Text numberOfLines={2} style={styles.bookTitle}>
@@ -118,12 +133,12 @@ export default function CategoryScreen() {
         <View style={styles.container}>
             <Appbar.Header style={styles.appbar}>
                 <Appbar.Content title="Danh Mục" />
-                <Appbar.Action icon="cart" onPress={() => { }} />
+                <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
             </Appbar.Header>
 
             <View style={styles.categoryTypeContainer}>
                 <Menu
-                    visible={visible}
+                    visible={menuVisible}
                     onDismiss={closeMenu}
                     anchor={
                         <Button
@@ -155,6 +170,14 @@ export default function CategoryScreen() {
                 numColumns={2}
                 contentContainerStyle={styles.bookList}
             />
+
+            <CartDrawer
+                visible={cartVisible}
+                onClose={() => setCartVisible(false)}
+                cartItems={cartItems}
+                onUpdateQuantity={updateCartItemQuantity}
+                onRemoveItem={removeFromCart}
+            />
         </View>
     );
 }
@@ -183,9 +206,6 @@ const styles = StyleSheet.create({
     bookItem: {
         flex: 1,
         padding: 8,
-    },
-    bookCard: {
-        elevation: 4,
     },
     bookImage: {
         height: 200,

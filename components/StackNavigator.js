@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import SplashScreen from "./SplashScreen";
 import BottomTabNavigator from "./BottomTabNavigator";
 import EditProfileScreen from "./EditProfileScreen";
+import MyOrderScreen from "./MyOrderScreen";
 
 const Stack = createStackNavigator();
 
@@ -22,6 +23,7 @@ export default function StackNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MyOrder" component={MyOrderScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Animated, Dimensions, TouchableOpacity, FlatList } from 'react-native';
 import { Surface, Text, IconButton, Button, Card } from 'react-native-paper';
 
@@ -7,13 +7,22 @@ const DRAWER_WIDTH = width * 0.90;
 
 export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQuantity, onRemoveItem }) {
   const translateX = useRef(new Animated.Value(DRAWER_WIDTH)).current;
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
 
   useEffect(() => {
+    if (visible) {
+      setIsComponentMounted(true);
+    }
+    
     Animated.timing(translateX, {
       toValue: visible ? 0 : DRAWER_WIDTH,
       duration: 300,
       useNativeDriver: true,
-    }).start();
+    }).start(() => {
+      if (!visible) {
+        setIsComponentMounted(false);
+      }
+    });
   }, [visible]);
 
   const renderCartItem = ({ item }) => (
@@ -48,7 +57,7 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
     </Card>
   );
 
-  if (!visible) return null;
+  if (!isComponentMounted && !visible) return null;
 
   const totalAmount = cartItems.reduce((sum, item) => {
     const price = parseFloat(item.price.replace('đ', '').replace('.', ''));
@@ -60,7 +69,7 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
       <Animated.View style={[styles.drawer, { transform: [{ translateX }] }]}>
         <Surface style={styles.header}>
-          <Text variant="titleLarge" style={styles.title}>Giỏ hàng</Text>
+          <Text variant="titleMedium" style={styles.title}>Giỏ hàng</Text>
           <IconButton icon="close" size={24} onPress={onClose} />
         </Surface>
 

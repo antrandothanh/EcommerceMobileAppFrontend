@@ -103,7 +103,6 @@ export default function HomeScreen() {
         <Appbar.Action 
           icon="cart" 
           onPress={() => setCartVisible(true)}
-          badge={cartItems.length || undefined}
         />
       </Appbar.Header>
 

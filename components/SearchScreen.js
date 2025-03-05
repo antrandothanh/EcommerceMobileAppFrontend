@@ -4,7 +4,6 @@ import {
   View,
   Dimensions,
   FlatList,
-  Image,
   TouchableOpacity,
 } from "react-native";
 import {
@@ -15,6 +14,7 @@ import {
   Text,
   Card,
 } from "react-native-paper";
+import CartDrawer from "./CartDrawer";
 
 const { width } = Dimensions.get("window");
 
@@ -97,10 +97,26 @@ export default function SearchScreen() {
   const [visible, setVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(searchCategories[0]);
 
+  const [cartVisible, setCartVisible] = useState(false);
+  const [cartItems, setCartItems] = useState(sampleBooks);
+
+
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
 
   const onChangeSearch = (query) => setSearchQuery(query);
+
+  const addToCart = (book) => {
+    // add to cart
+  };
+
+  const updateCartItemQuantity = (itemId, newQuantity) => {
+    // update cart items
+  };
+
+  const removeFromCart = (itemId) => {
+    // remove cart items
+  };
 
   const renderBookItem = ({ item }) => (
     <TouchableOpacity style={styles.bookItem}>
@@ -121,7 +137,7 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Tìm kiếm" />
-        <Appbar.Action icon="cart" onPress={() => {}} />
+        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
       </Appbar.Header>
 
       <View style={styles.searchContainer}>
@@ -163,6 +179,14 @@ export default function SearchScreen() {
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.bookList}
+      />
+
+      <CartDrawer
+        visible={cartVisible}
+        onClose={() => setCartVisible(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={updateCartItemQuantity}
+        onRemoveItem={removeFromCart}
       />
     </View>
   );

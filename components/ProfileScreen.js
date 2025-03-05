@@ -9,6 +9,75 @@ import {
   Appbar
 } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import CartDrawer from './CartDrawer';
+
+// Sample book data
+const sampleBooks = [
+  {
+    id: "1",
+    title: "Đắc Nhân Tâm",
+    author: "Dale Carnegie",
+    price: "86.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/df/7d/da/d340edda2b0eacb7ddc47537cddb5e08.jpg",
+  },
+  {
+    id: "2",
+    title: "Nhà Giả Kim",
+    author: "Paulo Coelho",
+    price: "79.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/66/5f/5a/7666a0fc1666b3155a0c9a612360e105.jpg",
+  },
+  {
+    id: "3",
+    title: "Cây Cam Ngọt Của Tôi",
+    author: "José Mauro de Vasconcelos",
+    price: "108.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg",
+  },
+  {
+    id: "4",
+    title: "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
+    author: "Nguyễn Nhật Ánh",
+    price: "125.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
+  },
+  {
+    id: "5",
+    title: "Skidibi Toilet",
+    author: "Nguyễn Nhật Ánh",
+    price: "125.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
+  },
+  {
+    id: "6",
+    title: "Skidibi Toilet",
+    author: "Nguyễn Nhật Ánh",
+    price: "125.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
+  },
+  {
+    id: "7",
+    title: "Skidibi Toilet",
+    author: "Nguyễn Nhật Ánh",
+    price: "125.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
+  },
+  {
+    id: "8",
+    title: "Skidibi Toilet",
+    author: "Nguyễn Nhật Ánh",
+    price: "125.000đ",
+    image:
+      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
+  },
+];
 
 export default function ProfileScreen({ navigation }) {
   const theme = useTheme();
@@ -28,17 +97,32 @@ export default function ProfileScreen({ navigation }) {
       icon: 'person-outline',
       onPress: () => navigation.navigate('EditProfile')
     },
-    { title: 'Đơn hàng của tôi', icon: 'cart-outline', onPress: () => { } },
+    { title: 'Đơn hàng của tôi', icon: 'cart-outline', onPress: () => navigation.navigate('MyOrder') },
     { title: 'Sách yêu thích', icon: 'heart-outline', onPress: () => { } },
     { title: 'Cài đặt thông báo', icon: 'notifications-outline', onPress: () => { } },
     { title: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', onPress: () => { } },
   ];
 
+  const [cartVisible, setCartVisible] = useState(false);
+  const [cartItems, setCartItems] = useState(sampleBooks);
+
+  const addToCart = (book) => {
+    // add to cart
+  };
+
+  const updateCartItemQuantity = (itemId, newQuantity) => {
+    // update cart items
+  };
+
+  const removeFromCart = (itemId) => {
+    // remove cart items
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Hồ Sơ" />
-        <Appbar.Action icon="cart" onPress={() => { }} />
+        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
       </Appbar.Header>
 
       <ScrollView>
@@ -82,6 +166,14 @@ export default function ProfileScreen({ navigation }) {
           />
         </Surface>
       </ScrollView>
+
+      <CartDrawer
+        visible={cartVisible}
+        onClose={() => setCartVisible(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={updateCartItemQuantity}
+        onRemoveItem={removeFromCart}
+      />
     </View>
   );
 }
