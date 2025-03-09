@@ -5,6 +5,7 @@ import SplashScreen from "./SplashScreen";
 import BottomTabNavigator from "./BottomTabNavigator";
 import EditProfileScreen from "./EditProfileScreen";
 import MyOrderScreen from "./MyOrderScreen";
+import EditNotificationScreen from "./EditNotificationScreen";
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ export default function StackNavigator() {
         />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
         <Stack.Screen name="MyOrder" component={MyOrderScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="EditNotification" component={EditNotificationScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

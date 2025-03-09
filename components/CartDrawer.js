@@ -3,7 +3,7 @@ import { StyleSheet, View, Animated, Dimensions, TouchableOpacity, FlatList } fr
 import { Surface, Text, IconButton, Button, Card } from 'react-native-paper';
 
 const { width } = Dimensions.get('window');
-const DRAWER_WIDTH = width * 0.90;
+const DRAWER_WIDTH = width * 0.80;
 
 export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQuantity, onRemoveItem }) {
   const translateX = useRef(new Animated.Value(DRAWER_WIDTH)).current;
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: 40,
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',

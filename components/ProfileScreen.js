@@ -99,7 +99,7 @@ export default function ProfileScreen({ navigation }) {
     },
     { title: 'Đơn hàng của tôi', icon: 'cart-outline', onPress: () => navigation.navigate('MyOrder') },
     { title: 'Sách yêu thích', icon: 'heart-outline', onPress: () => { } },
-    { title: 'Cài đặt thông báo', icon: 'notifications-outline', onPress: () => { } },
+    { title: 'Cài đặt thông báo', icon: 'notifications-outline', onPress: () => navigation.navigate('EditNotification') },
     { title: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', onPress: () => { } },
   ];
 

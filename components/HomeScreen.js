@@ -83,7 +83,7 @@ export default function HomeScreen() {
 
   const BookSection = ({ title, data }) => (
     <View style={styles.section}>
-      <Text variant="headlineMedium" style={styles.sectionTitle}>
+      <Text variant="titleLarge" style={styles.sectionTitle}>
         {title}
       </Text>
       <FlatList
@@ -119,9 +119,9 @@ export default function HomeScreen() {
         {/* Book Section */}
         <BookSection title="Sách Bán Chạy" data={sampleBooks} />
         <BookSection title="Sách Mới Phát Hành" data={sampleBooks} />
-        <BookSection title="Kinh dị" data={sampleBooks} />
-        <BookSection title="Tiểu thuyết" data={sampleBooks} />
-        <BookSection title="Trinh Thám" data={sampleBooks} />
+        <BookSection title="Kinh Dị Hay Nhất" data={sampleBooks} />
+        <BookSection title="Tiểu Thuyết Hay Nhất" data={sampleBooks} />
+        <BookSection title="Trinh Thám Hay Nhất" data={sampleBooks} />
       </ScrollView>
 
       <CartDrawer
