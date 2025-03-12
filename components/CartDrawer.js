@@ -13,7 +13,7 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
     if (visible) {
       setIsComponentMounted(true);
     }
-    
+
     Animated.timing(translateX, {
       toValue: visible ? 0 : DRAWER_WIDTH,
       duration: 300,

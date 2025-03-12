@@ -5,6 +5,8 @@ import HomeScreen from "./HomeScreen";
 import ProfileScreen from "./ProfileScreen";
 import CategoryScreen from "./CategoryScreen";
 import SearchScreen from "./SearchScreen";
+import SignUpScreen from "./SignUpScreen";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +23,7 @@ export default function BottomTabNavigator() {
             iconName = focused ? "search" : "search-outline";
           } else if (route.name === "Danh Mục") {
             iconName = focused ? "book" : "book-outline"
-          } else if (route.name === "Hồ Sơ") {
+          } else if (route.name === "Hồ sơ") {
             iconName = focused ? "person" : "person-outline";
           }
 
@@ -47,7 +49,7 @@ export default function BottomTabNavigator() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Hồ Sơ"
+        name="Hồ sơ"
         component={ProfileScreen}
         options={{ headerShown: false }}
       />

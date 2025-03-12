@@ -6,6 +6,8 @@ import BottomTabNavigator from "./BottomTabNavigator";
 import EditProfileScreen from "./EditProfileScreen";
 import MyOrderScreen from "./MyOrderScreen";
 import EditNotificationScreen from "./EditNotificationScreen";
+import SignUpScreen from "./SignUpScreen";
+import SignInScreen from "./SignInScreen";
 
 const Stack = createStackNavigator();
 
@@ -26,6 +28,8 @@ export default function StackNavigator() {
         <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
         <Stack.Screen name="MyOrder" component={MyOrderScreen} options={{ headerShown: false }} />
         <Stack.Screen name="EditNotification" component={EditNotificationScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignIn" component={SignInScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
