@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import {
   Avatar,
@@ -10,6 +10,9 @@ import {
 } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import CartDrawer from './CartDrawer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../config';
+import axios from 'axios';
 
 // Sample book data
 const sampleBooks = [
@@ -85,6 +88,27 @@ export default function ProfileScreen({ navigation }) {
   // State to track if user is authenticated
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Check if user logged in
+  useEffect(() => {
+    const isLoggedIn = async () => {
+      try {
+        // Get token from AsyncStorage
+        const token = await AsyncStorage.getItem("userToken");
+
+        if (token) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Error checking login status: ", error);
+        setIsAuthenticated(false);
+      }
+    }
+
+    isLoggedIn();
+  }, []);
+
   // Sample user data
   const user = {
     id: '001',
@@ -120,6 +144,43 @@ export default function ProfileScreen({ navigation }) {
   const removeFromCart = (itemId) => {
     // remove cart items
   };
+
+  const handleLogout = async () => {
+    try {
+      const API_URL = API_BASE_URL + "/api/auth/logout";
+
+      // Get token from AsyncStorage
+      const token = await AsyncStorage.getItem("userToken");
+
+      const data = {
+        "token": token
+      };
+
+      if (token) {
+        const response = await axios.post(API_URL, data, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+
+        await AsyncStorage.removeItem("userToken");
+        await AsyncStorage.removeItem("userEmail");
+
+        console.log("Logout response: ", response.data);
+
+        setIsAuthenticated(false);
+        // navigation.navigate("MainApp");
+      } else {
+        console.error("Token not found");
+      }
+    } catch (error) {
+      console.error("Error logging out: ", error);
+      await AsyncStorage.removeItem("userToken");
+      await AsyncStorage.removeItem("userEmail");
+      setIsAuthenticated(false);
+    }
+  }
 
   // Render different content based on authentication status
   const renderContent = () => {
@@ -163,7 +224,7 @@ export default function ProfileScreen({ navigation }) {
               title="Đăng xuất"
               left={props => <Ionicons {...props} name="log-out-outline" size={24} color={theme.colors.error} />}
               titleStyle={{ color: theme.colors.error }}
-              onPress={() => setIsAuthenticated(false)}
+              onPress={handleLogout}
             />
           </Surface>
         </ScrollView>
@@ -179,9 +240,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={[styles.authButton, styles.loginButton]}
               onPress={() => {
-                // Navigate to login screen
-                // For demo purposes, we'll just set authenticated to true
-                setIsAuthenticated(true);
+                navigation.navigate("SignIn");
               }}
             >
               <Text style={styles.loginButtonText}>Đăng nhập</Text>

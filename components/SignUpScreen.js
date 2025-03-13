@@ -3,6 +3,8 @@ import { StyleSheet, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, P
 import { TextInput, Button, Text, Title, HelperText, useTheme, Snackbar } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
+
 
 const SignUpScreen = ({ navigation }) => {
     const [name, setName] = useState('');
@@ -22,7 +24,7 @@ const SignUpScreen = ({ navigation }) => {
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // API URL
-    const API_URL = 'http://192.168.1.226:8080/api/users';
+    const API_URL = API_BASE_URL + '/api/users';
 
     // Validation functions
     const validateName = () => {

@@ -3,6 +3,8 @@ import { StyleSheet, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, P
 import { TextInput, Button, Text, Title, HelperText, useTheme, Snackbar } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignInScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -14,8 +16,8 @@ const SignInScreen = ({ navigation }) => {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    // API URL
-    // const API_URL = 'http://192.168.1.226:8080/api/users';
+    // API_URL
+    const API_URL = API_BASE_URL + '/api/auth/token';
 
     // Validation functions
     const validateEmail = () => {
@@ -37,7 +39,41 @@ const SignInScreen = ({ navigation }) => {
 
         // If all fields are valid, proceed with registration
         if (isEmailValid) {
-            // Do some shit here
+            setLoading(true);
+
+            try {
+                const data = {
+                    "username": email,
+                    "password": password
+                }
+
+                const response = await axios.post(API_URL, data);
+
+                console.log("Login response: ", response.data);
+
+                // Save token to AsyncStorage
+                if (response.data.result.authenticated) {
+                    const token = response.data.result.token;
+                    await AsyncStorage.setItem("userToken", token);
+                    await AsyncStorage.setItem("userEmail", email);
+                    console.log("Token and email was saved to AsyncStorage");
+                }
+
+                setTimeout(() => {
+                    setEmail("");
+                    setPassword("");
+
+                    setLoading(false);
+
+                    navigation.navigate("MainApp");
+                }, 3000);
+            } catch(error) {
+                console.error("Login error: ", error);
+                let errorMessage = "Đăng nhập không thành công";
+                setSnackbarMessage(errorMessage);
+                setSnackbarVisible(true);
+                setLoading(false);
+            }
         }
     };
 
