@@ -67,7 +67,7 @@ const SignInScreen = ({ navigation }) => {
 
                     navigation.navigate("MainApp");
                 }, 3000);
-            } catch(error) {
+            } catch (error) {
                 console.error("Login error: ", error);
                 let errorMessage = "Đăng nhập không thành công";
                 setSnackbarMessage(errorMessage);
@@ -114,6 +114,12 @@ const SignInScreen = ({ navigation }) => {
                         }
                     />
 
+                    <View style={styles.forgetPasswordContainer}>
+                        <TouchableOpacity onPress={handleForgetPassword}>
+                            <Text style={styles.forgetPasswordLink}>Quên mật khẩu</Text>
+                        </TouchableOpacity>
+                    </View>
+
                     <Button
                         mode="contained"
                         onPress={handleSignIn}
@@ -140,7 +146,7 @@ const SignInScreen = ({ navigation }) => {
                             <Text style={styles.loginLink}>Đăng ký</Text>
                         </TouchableOpacity>
                     </View>
-                    
+
                     <View style={styles.backToHomeContainer}>
                         <TouchableOpacity onPress={() => navigation.navigate("MainApp")}>
                             <Text style={styles.backToHomeLink}>Quay lại trang chủ</Text>
@@ -219,6 +225,13 @@ const styles = StyleSheet.create({
     backToHomeLink: {
         fontWeight: 'bold',
         color: 'red',
+    },
+    forgetPasswordContainer: {
+        marginTop: 10,
+    },
+    forgetPasswordLink: {
+        fontWeight: 'bold',
+        color: '#007AFF',
     },
     myHelperText: {
         color: 'red',
