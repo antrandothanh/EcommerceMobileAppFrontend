@@ -17,7 +17,7 @@ const SignInScreen = ({ navigation }) => {
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // API_URL
-    const API_URL = API_BASE_URL + '/api/auth/token';
+    const API_URL = API_BASE_URL + '/auth/token';
 
     // Validation functions
     const validateEmail = () => {
@@ -49,8 +49,6 @@ const SignInScreen = ({ navigation }) => {
 
                 const response = await axios.post(API_URL, data);
 
-                console.log("Login response: ", response.data);
-
                 // Save token to AsyncStorage
                 if (response.data.result.authenticated) {
                     const token = response.data.result.token;
@@ -62,20 +60,23 @@ const SignInScreen = ({ navigation }) => {
                 setTimeout(() => {
                     setEmail("");
                     setPassword("");
-
                     setLoading(false);
-
                     navigation.navigate("MainApp");
                 }, 3000);
             } catch (error) {
-                console.error("Login error: ", error);
-                let errorMessage = "Đăng nhập không thành công";
+                // console.error("Login error hihi haha: ", error);
+                let errorMessage = "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin đăng nhập và thử lại sau.";
                 setSnackbarMessage(errorMessage);
                 setSnackbarVisible(true);
                 setLoading(false);
             }
         }
     };
+
+    const handleForgetPassword = () => {
+        // TODO: add forget password function
+        console.log("Forget password pressed");
+    }
 
     return (
         <View style={styles.container}>

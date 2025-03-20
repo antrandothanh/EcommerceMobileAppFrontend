@@ -88,35 +88,10 @@ export default function ProfileScreen({ navigation }) {
   // State to track if user is authenticated
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user logged in
-  useEffect(() => {
-    const isLoggedIn = async () => {
-      try {
-        // Get token from AsyncStorage
-        const token = await AsyncStorage.getItem("userToken");
+  const [cartVisible, setCartVisible] = useState(false);
+  const [cartItems, setCartItems] = useState(sampleBooks);
 
-        if (token) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("Error checking login status: ", error);
-        setIsAuthenticated(false);
-      }
-    }
-
-    isLoggedIn();
-  }, []);
-
-  // Sample user data
-  const user = {
-    id: '001',
-    name: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    avatar: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random',
-    joinDate: '01/01/2024',
-  };
+  const [userInfo, setUserInfo] = useState({});
 
   const menuItems = [
     {
@@ -129,9 +104,6 @@ export default function ProfileScreen({ navigation }) {
     { title: 'Cài đặt thông báo', icon: 'notifications-outline', onPress: () => navigation.navigate('EditNotification') },
     { title: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', onPress: () => { } },
   ];
-
-  const [cartVisible, setCartVisible] = useState(false);
-  const [cartItems, setCartItems] = useState(sampleBooks);
 
   const addToCart = (book) => {
     // add to cart
@@ -147,7 +119,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = async () => {
     try {
-      const API_URL = API_BASE_URL + "/api/auth/logout";
+      const API_URL = API_BASE_URL + "/auth/logout";
 
       // Get token from AsyncStorage
       const token = await AsyncStorage.getItem("userToken");
@@ -192,15 +164,15 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.avatarContainer}>
               <Avatar.Image
                 size={100}
-                source={{ uri: user.avatar }}
+                source={{ uri: userInfo.avatar }}
               />
             </View>
             <View style={styles.userInfo}>
               <Text variant="headlineSmall" style={styles.name}>
-                {user.name}
+                {userInfo.name}
               </Text>
               <Text variant="bodySmall" style={styles.joinDate}>
-                Thành viên từ: {user.joinDate}
+                Thành viên từ ngày: {userInfo.createdAt}
               </Text>
             </View>
           </Surface>
@@ -259,6 +231,68 @@ export default function ProfileScreen({ navigation }) {
       );
     }
   };
+
+  const isLoggedIn = async () => {
+    try {
+      // Get token from AsyncStorage
+      const token = await AsyncStorage.getItem("userToken");
+
+      if (token) {
+        setIsAuthenticated(true);
+        await fetchUserInfo();
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error("Error checking login status: ", error);
+      setIsAuthenticated(false);
+    }
+  }
+
+  const fetchUserInfo = async () => {
+    try {
+      // Get token from AsyncStorage
+      const token = await AsyncStorage.getItem("userToken");
+      console.log("Token: ", token);
+
+      // Get user info
+      const API_GET_INFO_URL = API_BASE_URL + "/users/my-info";
+      const response = await axios.get(API_GET_INFO_URL, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      const createdDate = new Date(response.data.result.createdAt);
+      
+      const formattedDate = createdDate.toLocaleDateString('vi-VN', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      });
+
+      const userInfo = {
+        id: response.data.result.id,
+        name: response.data.result.name,
+        phone: response.data.result.phone,
+        email: response.data.result.email,
+        avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random",
+        createdAt: formattedDate
+      }
+
+      console.log("User info: ", userInfo);
+
+      setUserInfo(userInfo);
+
+    } catch (error) {
+      console.error("Error getting user info: ", error);
+    }
+  }
+
+  useEffect(() => {
+    // Check if user logged in. If it is true, fetch user info
+    isLoggedIn();
+  }, []);
 
   return (
     <View style={styles.container}>
