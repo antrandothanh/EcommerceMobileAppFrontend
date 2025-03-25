@@ -86,7 +86,10 @@ export default function AdminHomeScreen({ navigation }) {
             <ScrollView style={styles.scrollView}>
                 <View style={styles.welcomeContainer}>
                     <Text variant="headlineMedium" style={styles.welcomeText}>
-                        Xin chào, ADMIN
+                        Xin chào, ADMIN 👋
+                    </Text>
+                    <Text variant="headlineMedium" style={styles.welcomeText}>
+                        ♥ ♥ ♥
                     </Text>
                 </View>
 
