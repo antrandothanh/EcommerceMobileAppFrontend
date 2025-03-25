@@ -13,7 +13,7 @@ export default function AdminHomeScreen({ navigation }) {
 
     const menuItems = [
         { title: 'Quản lí sách', icon: 'book-outline', onPress: () => { alert("Quản lí sách") } },
-        { title: 'Quản lí thể loại', icon: 'library-outline', onPress: () => {  } },
+        { title: 'Quản lí thể loại', icon: 'library-outline', onPress: () => { navigation.navigate('AdminGenreManagement') } },
         { title: 'Quản lí đơn hàng', icon: 'cart-outline', onPress: () => { alert("Quản lí đơn hàng") } },
         { title: 'Quản lí người dùng', icon: 'people-outline', onPress: () => { alert("Quản lí người dùng") } },
         { title: 'Thống kê', icon: 'bar-chart-outline', onPress: () => { alert("Thống kê") } },

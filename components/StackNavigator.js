@@ -9,7 +9,7 @@ import EditNotificationScreen from "./EditNotificationScreen";
 import SignUpScreen from "./SignUpScreen";
 import SignInScreen from "./SignInScreen";
 import AdminHomeScreen from './admin/AdminHomeScreen';
-// import AdminGenreManagementScreen from "./admin/AdminGenreManagementScreen";
+import AdminGenreManagementScreen from "./admin/AdminGenreManagementScreen";
 
 const Stack = createStackNavigator();
 
@@ -28,7 +28,7 @@ export default function StackNavigator() {
 
         {/* Admin screens */}
         <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false}} />
-        {/* <Stack.Screen name="AdminGenreManagementScreen" component={AdminGenreManagementScreen} options={{ headerShown: false}} /> */}
+        <Stack.Screen name="AdminGenreManagement" component={AdminGenreManagementScreen} options={{ headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
