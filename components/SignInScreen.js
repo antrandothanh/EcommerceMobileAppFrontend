@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { TextInput, Button, Text, Title, HelperText, useTheme, Snackbar } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
@@ -11,22 +11,23 @@ const SignInScreen = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [secureTextEntry, setSecureTextEntry] = useState(true);
     const [emailError, setEmailError] = useState('');
-    const [passwordError, setPasswordError] = useState('');
     const [loading, setLoading] = useState(false);
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-
-    // API_URL
-    const API_URL = API_BASE_URL + '/auth/token';
+    const [userInfo, setUserInfo] = useState({});
 
     // Validation functions
     const validateEmail = () => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // if (!email.trim()) {
+        //     setEmailError('Yêu cầu nhập email');
+        //     return false;
+        // } else if (!emailRegex.test(email)) {
+        //     setEmailError('Email không hợp lệ');
+        //     return false;
+        // }
         if (!email.trim()) {
-            setEmailError('Yêu cầu nhập email');
-            return false;
-        } else if (!emailRegex.test(email)) {
-            setEmailError('Email không hợp lệ');
+            setEmailError("Vui lòng nhập email");
             return false;
         }
         setEmailError('');
@@ -36,33 +37,32 @@ const SignInScreen = ({ navigation }) => {
     // Sign in function
     const handleSignIn = async () => {
         const isEmailValid = validateEmail();
-
-        // If all fields are valid, proceed with registration
         if (isEmailValid) {
             setLoading(true);
-
             try {
                 const data = {
                     "username": email,
                     "password": password
                 }
-
+                const API_URL = API_BASE_URL + '/auth/token';
                 const response = await axios.post(API_URL, data);
-
-                // Save token to AsyncStorage
                 if (response.data.result.authenticated) {
                     const token = response.data.result.token;
                     await AsyncStorage.setItem("userToken", token);
-                    await AsyncStorage.setItem("userEmail", email);
-                    console.log("Token and email was saved to AsyncStorage");
+                    const userInfo = await fetchUserInfo();
+                    await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
+                    console.log("userToken and userInfo was saved to AsyncStorage");
+                    setTimeout(() => {
+                        setEmail("");
+                        setPassword("");
+                        setLoading(false);
+                        if (userInfo.role === "CUSTOMER") {
+                            navigation.navigate("MainApp");
+                        } else if (userInfo.role === "ADMIN") {
+                            navigation.navigate("AdminHome");
+                        }
+                    }, 3000);
                 }
-
-                setTimeout(() => {
-                    setEmail("");
-                    setPassword("");
-                    setLoading(false);
-                    navigation.navigate("MainApp");
-                }, 3000);
             } catch (error) {
                 // console.error("Login error hihi haha: ", error);
                 let errorMessage = "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin đăng nhập và thử lại sau.";
@@ -72,6 +72,37 @@ const SignInScreen = ({ navigation }) => {
             }
         }
     };
+
+    const fetchUserInfo = async () => {
+        try {
+            const token = await AsyncStorage.getItem("userToken");
+            const API_GET_INFO_URL = API_BASE_URL + "/users/my-info";
+            const response = await axios.get(API_GET_INFO_URL, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+            });
+            const createdDate = new Date(response.data.result.createdAt);
+            const formattedDate = createdDate.toLocaleDateString('vi-VN', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric',
+            });
+            const userInfo = {
+                id: response.data.result.id,
+                name: response.data.result.name,
+                phone: response.data.result.phone,
+                email: response.data.result.email,
+                avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random",
+                createdAt: formattedDate,
+                role: response.data.result.roles[0].name
+            }
+            setUserInfo(userInfo);
+            return userInfo;
+        } catch (error) {
+            console.error("Error getting user info: ", error);
+        }
+    }
 
     const handleForgetPassword = () => {
         // TODO: add forget password function

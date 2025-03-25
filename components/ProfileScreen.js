@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
-import {
-  Avatar,
-  Text,
-  List,
-  Surface,
-  useTheme,
-  Appbar
-} from 'react-native-paper';
+import { Avatar, Text, List, Surface, useTheme, Appbar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import CartDrawer from './CartDrawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -234,12 +227,13 @@ export default function ProfileScreen({ navigation }) {
 
   const isLoggedIn = async () => {
     try {
-      // Get token from AsyncStorage
       const token = await AsyncStorage.getItem("userToken");
-
+      console.log("Token: ", token);
       if (token) {
         setIsAuthenticated(true);
-        await fetchUserInfo();
+        const userInfoString = await AsyncStorage.getItem("userInfo");
+        const userInfo = JSON.parse(userInfoString);
+        setUserInfo(userInfo);
       } else {
         setIsAuthenticated(false);
       }
@@ -249,48 +243,7 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
-  const fetchUserInfo = async () => {
-    try {
-      // Get token from AsyncStorage
-      const token = await AsyncStorage.getItem("userToken");
-      console.log("Token: ", token);
-
-      // Get user info
-      const API_GET_INFO_URL = API_BASE_URL + "/users/my-info";
-      const response = await axios.get(API_GET_INFO_URL, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-      });
-
-      const createdDate = new Date(response.data.result.createdAt);
-      
-      const formattedDate = createdDate.toLocaleDateString('vi-VN', {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric',
-      });
-
-      const userInfo = {
-        id: response.data.result.id,
-        name: response.data.result.name,
-        phone: response.data.result.phone,
-        email: response.data.result.email,
-        avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random",
-        createdAt: formattedDate
-      }
-
-      console.log("User info: ", userInfo);
-
-      setUserInfo(userInfo);
-
-    } catch (error) {
-      console.error("Error getting user info: ", error);
-    }
-  }
-
   useEffect(() => {
-    // Check if user logged in. If it is true, fetch user info
     isLoggedIn();
   }, []);
 
