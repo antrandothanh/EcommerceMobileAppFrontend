@@ -65,7 +65,7 @@ export default function HomeScreen() {
   };
 
   const renderBookItem = ({ item }) => (
-    <TouchableOpacity style={styles.bookItem} onPress={() => addToCart(item)}>
+    <View style={styles.bookItem}>
       <Card style={styles.bookCard}>
         <Card.Cover source={{ uri: item.image }} style={styles.bookImage} />
         <Card.Content>
@@ -78,7 +78,7 @@ export default function HomeScreen() {
           <Text style={styles.bookPrice}>{item.price}</Text>
         </Card.Content>
       </Card>
-    </TouchableOpacity>
+    </View>
   );
 
   const BookSection = ({ title, data }) => (

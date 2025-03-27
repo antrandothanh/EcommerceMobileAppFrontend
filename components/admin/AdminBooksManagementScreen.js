@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, FlatList, TouchableOpacity, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { Appbar, Searchbar, List, Text, FAB, Divider, Snackbar, Dialog, TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,6 +27,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
     const [newBookGenre, setNewBookGenre] = useState('');
     const [newBookImage, setNewBookImage] = useState(null);
     const [editingBook, setEditingBook] = useState(null);
+    const [isBookImageVisible, setIsBookImageVisible] = useState(false);
 
     useEffect(() => {
         fetchBooks();
@@ -44,6 +45,30 @@ export default function AdminBooksManagementScreen({ navigation }) {
             setFilteredBooks(filtered);
         }
     }, [searchQuery, books]);
+
+    const handleImagePickerPress = async () => {
+        try {
+            if (isBookImageVisible) {
+                setNewBookImage('');
+                setIsBookImageVisible(false);
+            } else {
+                let result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    aspect: [4, 5],
+                    quality: 1,
+                });
+                if (!result.canceled) {
+                    setNewBookImage(result.assets[0].uri);
+                    setIsBookImageVisible(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error picking image:', error);
+            setSnackbarMessage('Không thể chọn ảnh');
+            setSnackbarVisible(true);
+        }
+    }
 
     const fetchBooks = async () => {
         try {
@@ -156,25 +181,6 @@ export default function AdminBooksManagementScreen({ navigation }) {
         setNewBookImage(null);
     };
 
-    const pickImage = async () => {
-        try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 1,
-            });
-
-            if (!result.canceled) {
-                setNewBookImage(result.assets[0].uri);
-            }
-        } catch (error) {
-            console.error('Error picking image:', error);
-            setSnackbarMessage('Không thể chọn ảnh');
-            setSnackbarVisible(true);
-        }
-    };
-
     const handleEditBook = async () => {
         if (!newBookName.trim()) {
             setSnackbarMessage('Tên sách không được để trống');
@@ -276,6 +282,8 @@ export default function AdminBooksManagementScreen({ navigation }) {
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                     style={styles.searchBar}
+                    inputStyle={styles.searchBarInput}
+                    mode='view'
                 />
                 <TouchableOpacity style={styles.filterTypeButton}>
                     <Ionicons name="filter-outline" size={30} />
@@ -312,78 +320,82 @@ export default function AdminBooksManagementScreen({ navigation }) {
             />
 
             {/* Add Book Dialog */}
-            <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
+            <Dialog style={styles.dialogStyle} visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
                 <Dialog.Title>Thêm sách mới</Dialog.Title>
                 <Dialog.Content>
-                    <TextInput
-                        label="Tên sách"
-                        value={newBookName}
-                        onChangeText={setNewBookName}
-                        mode="outlined"
-                        style={styles.dialogInput}
-                    />
-                    <TextInput
-                        label="Tác giả"
-                        value={newBookAuthor}
-                        onChangeText={setNewBookAuthor}
-                        mode="outlined"
-                        style={styles.dialogInput}
-                    />
-                    <TextInput
-                        label="Nhà xuất bản"
-                        value={newBookPublisher}
-                        onChangeText={setNewBookPublisher}
-                        mode="outlined"
-                        style={styles.dialogInput}
-                    />
-                    <TouchableOpacity onPress={() => setShowPicker(true)}>
+                    <ScrollView style={styles.scrollView}>
                         <TextInput
-                            label="Ngày xuất bản"
-                            value={newBookPublicationDate}
+                            label="Tên sách"
+                            value={newBookName}
+                            onChangeText={setNewBookName}
                             mode="outlined"
                             style={styles.dialogInput}
-                            placeholder="DD/MM/YYYY"
-                            editable={false}
-                            right={<TextInput.Icon icon="calendar" />}
                         />
-                        {showPicker && (
-                            <DateTimePicker
-                                mode='date'
-                                display='default'
-                                value={new Date()}
-                                onChange={handleSetDateTimePicker}
+                        <TextInput
+                            label="Tác giả"
+                            value={newBookAuthor}
+                            onChangeText={setNewBookAuthor}
+                            mode="outlined"
+                            style={styles.dialogInput}
+                        />
+                        <TextInput
+                            label="Nhà xuất bản"
+                            value={newBookPublisher}
+                            onChangeText={setNewBookPublisher}
+                            mode="outlined"
+                            style={styles.dialogInput}
+                        />
+                        <TouchableOpacity onPress={() => setShowPicker(true)}>
+                            <TextInput
+                                label="Ngày xuất bản"
+                                value={newBookPublicationDate}
+                                mode="outlined"
+                                style={styles.dialogInput}
+                                placeholder="DD/MM/YYYY"
+                                editable={false}
+                                right={<TextInput.Icon icon="calendar" />}
                             />
-                        )}
-                    </TouchableOpacity>
-                    <TextInput
-                        label="Giá"
-                        value={newBookPrice}
-                        onChangeText={setNewBookPrice}
-                        mode="outlined"
-                        style={styles.dialogInput}
-                        keyboardType="numeric"
-                    />
-                    <TextInput
-                        label="Thể loại"
-                        value={newBookGenre}
-                        onChangeText={setNewBookGenre}
-                        mode="outlined"
-                        style={styles.dialogInput}
-                    />
-                    <TouchableOpacity
-                        style={styles.imagePickerButton}
-                        onPress={pickImage}
-                    >
-                        <Text style={styles.imagePickerText}>
-                            {newBookImage ? 'Thay đổi ảnh' : 'Thêm ảnh bìa'}
-                        </Text>
-                        {newBookImage && (
-                            <Image
-                                source={{ uri: newBookImage }}
-                                style={styles.previewImage}
-                            />
-                        )}
-                    </TouchableOpacity>
+                            {showPicker && (
+                                <DateTimePicker
+                                    mode='date'
+                                    display='default'
+                                    value={new Date()}
+                                    onChange={handleSetDateTimePicker}
+                                />
+                            )}
+                        </TouchableOpacity>
+                        <TextInput
+                            label="Giá"
+                            value={newBookPrice}
+                            onChangeText={setNewBookPrice}
+                            mode="outlined"
+                            style={styles.dialogInput}
+                            keyboardType="numeric"
+                        />
+                        <TextInput
+                            label="Thể loại"
+                            value={newBookGenre}
+                            onChangeText={setNewBookGenre}
+                            mode="outlined"
+                            style={styles.dialogInput}
+                        />
+                        <TouchableOpacity
+                            style={styles.imagePickerButton}
+                            onPress={handleImagePickerPress}
+                        >
+                            {newBookImage ? (
+                                <>
+                                    <Image
+                                        source={{ uri: newBookImage }}
+                                        style={styles.previewImage}
+                                    />
+                                    <Text>Chạm để xóa ảnh</Text>
+                                </>
+                            ) :
+                                <Text>Thêm ảnh bìa sách</Text>
+                            }
+                        </TouchableOpacity>
+                    </ScrollView>
                 </Dialog.Content>
                 <Dialog.Actions>
                     <Button onPress={() => {
@@ -442,11 +454,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     searchBar: {
-        elevation: 2,
-        borderRadius: 100,
         flex: 0.8,
         marginRight: 8,
-
+        borderWidth: 1,
+        borderColor: '#f5f5f5',
+        backgroundColor: '#f5f5f5',
+    },
+    searchBarInput: {
+        fontSize: 14,
+        height: 10,
+    },
+    dialogStyle: {
+        borderRadius: 40,
+    },
+    scrollView: {
+        height: 400,
     },
     filterTypeButton: {
         alignItems: "center",
@@ -483,6 +505,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#757575',
         textAlign: 'center',
+    },
+    imagePickerButton: {
+        marginTop: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: 10,
+        width: 180,
+        height: 250,
+    },
+    previewImage: {
+        width: 160,
+        height: 200,
+        marginBottom: 10,
     },
     fab: {
         position: 'absolute',
