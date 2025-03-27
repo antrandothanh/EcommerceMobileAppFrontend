@@ -7,6 +7,7 @@ import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { API_BASE_URL } from '../../config';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Dropdown } from 'react-native-element-dropdown';
 
 export default function AdminBooksManagementScreen({ navigation }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -21,18 +22,26 @@ export default function AdminBooksManagementScreen({ navigation }) {
     const [newBookName, setNewBookName] = useState('');
     const [newBookAuthor, setNewBookAuthor] = useState('');
     const [newBookPublisher, setNewBookPublisher] = useState('');
-    const [newBookPublicationDate, setNewBookPublicationDate] = useState('');
+    const [newBookPublicationDate, setNewBookPublicationDate] = useState(null);
+    const [newBookPublicationDateString, setNewBookPublicationDateString] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [newBookPrice, setNewBookPrice] = useState('');
-    const [newBookGenre, setNewBookGenre] = useState('');
-    const [newBookImage, setNewBookImage] = useState(null);
+    const [newBookGenre, setNewBookGenre] = useState(null);
+    const [newBookImage, setNewBookImage] = useState('');
+    const [newBookImageURI, setNewBookImageURI] = useState(null);
+    const [newBookDescription, setNewBookDescription] = useState('');
     const [editingBook, setEditingBook] = useState(null);
     const [isBookImageVisible, setIsBookImageVisible] = useState(false);
+    const [genres, setGenres] = useState([]);
+    const [isGenresDropdownFocus, setIsGenresDropdownFocus] = useState(false);
 
+    // Fetch data when access to this screen for the first time
     useEffect(() => {
         fetchBooks();
+        fetchGenres();
     }, []);
 
+    // Reload books list when search query is changed or books list is changed
     useEffect(() => {
         if (searchQuery.trim() === '') {
             setFilteredBooks(books);
@@ -46,10 +55,30 @@ export default function AdminBooksManagementScreen({ navigation }) {
         }
     }, [searchQuery, books]);
 
+    // Fetch genres from database
+    const fetchGenres = async () => {
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+            if (!token) {
+                setSnackbarMessage('Không tìm thấy token đăng nhập');
+                return;
+            }
+            const response = await axios.get(`${API_BASE_URL}/genres`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setGenres(response.data.result);
+        } catch (error) {
+            console.error('Error fetching genres:', error);
+        }
+    }
+
+    // Handle image picker
     const handleImagePickerPress = async () => {
         try {
             if (isBookImageVisible) {
-                setNewBookImage('');
+                setNewBookImageURI('');
                 setIsBookImageVisible(false);
             } else {
                 let result = await ImagePicker.launchImageLibraryAsync({
@@ -59,7 +88,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
                     quality: 1,
                 });
                 if (!result.canceled) {
-                    setNewBookImage(result.assets[0].uri);
+                    setNewBookImageURI(result.assets[0].uri);
                     setIsBookImageVisible(true);
                 }
             }
@@ -109,32 +138,94 @@ export default function AdminBooksManagementScreen({ navigation }) {
         fetchBooks();
     };
 
-    const handleAddBook = async () => {
-        if (!newBookName.trim()) {
-            setSnackbarMessage('Tên sách không được để trống');
-            setSnackbarVisible(true);
-            return;
-        }
-
+    // Upload image to cloundinary server and return the image URL
+    const uploadImageURL = async () => {
         try {
+            // Check if the use logged in before
             const token = await AsyncStorage.getItem('userToken');
-
             if (!token) {
                 setSnackbarMessage('Không tìm thấy token đăng nhập');
                 setSnackbarVisible(true);
                 return;
             }
+            // Create form data for uploading image
+            const formData = new FormData();
+            const filename = newBookImageURI.split('/').pop();
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : 'image';
+            formData.append('files', {
+                uri: newBookImageURI,
+                name: filename,
+                type,
+            });
+            // Send form data to cloundinary server
+            const response = await axios.post(`${API_BASE_URL}/uploadImages`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            // Set image URL from the cloundinary server to the state
+            console.log("Response URL", response.data.result);
+            return response.data.result[0];
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setSnackbarMessage('Không thể tải ảnh lên');
+            setSnackbarVisible(true);
+        }
+    }
 
+    // Handle add new book feature
+    const handleAddBook = async () => {
+        // Check if all required fields are filled
+        if (!newBookName.trim()) {
+            setSnackbarMessage('Tên sách không được để trống');
+            setSnackbarVisible(true);
+            return;
+        }
+        if (!newBookAuthor.trim()) {
+            setSnackbarMessage('Tác giả không được để trống');
+            setSnackbarVisible(true);
+            return;
+        }
+        if (!newBookPrice.trim()) {
+            setSnackbarMessage('Giá sách không được để trống');
+            setSnackbarVisible(true);
+            return;
+        }
+        if (!newBookGenre) {
+            setSnackbarMessage('Vui lòng chọn thể loại sách');
+            setSnackbarVisible(true);
+            return;
+        }
+        if (!newBookImageURI) {
+            setSnackbarMessage('Vui lòng thêm ảnh bìa sách');
+            setSnackbarVisible(true);
+            return;
+        }
+        try {
+            setLoading(true);
+            const token = await AsyncStorage.getItem('userToken');
+            if (!token) {
+                setSnackbarMessage('Không tìm thấy token đăng nhập');
+                setSnackbarVisible(true);
+                return;
+            }
+            // Upload image to cloundinary server and get the image URL
+            const imageURL = await uploadImageURL();
+            // Create book data JSON object
             const bookData = {
                 name: newBookName,
                 author: newBookAuthor,
                 publisher: newBookPublisher,
                 publicationDate: newBookPublicationDate,
+                description: newBookDescription,
                 price: newBookPrice,
-                genre: newBookGenre,
-                image: newBookImage
+                genres: [newBookGenre],
+                image: imageURL,
+                ratings: [],
+                isInStock: true,
             };
-
             const response = await axios.post(`${API_BASE_URL}/books`,
                 bookData,
                 {
@@ -145,15 +236,19 @@ export default function AdminBooksManagementScreen({ navigation }) {
                 }
             );
 
-            setDialogVisible(false);
-            resetBookFormFields();
-            setSnackbarMessage('Thêm sách thành công');
-            setSnackbarVisible(true);
+            setTimeout(() => {
+                setDialogVisible(false);
+                resetBookFormFields();
+                setSnackbarMessage('Thêm sách thành công');
+                setSnackbarVisible(true);
+                setLoading(false);
+            }, 1000);
             fetchBooks();
         } catch (error) {
             console.error('Error adding book:', error);
             setSnackbarMessage('Không thể thêm sách');
             setSnackbarVisible(true);
+            setLoading(false);
         }
     };
 
@@ -162,12 +257,13 @@ export default function AdminBooksManagementScreen({ navigation }) {
     };
 
     const handleSetDateTimePicker = (event, selectedDate) => {
+        setNewBookPublicationDate(selectedDate);
         const formattedDate = selectedDate.toLocaleDateString('vi-VN', {
             day: 'numeric',
             month: 'numeric',
             year: 'numeric',
         });
-        setNewBookPublicationDate(formattedDate);
+        setNewBookPublicationDateString(formattedDate);
         setShowPicker(false);
     }
 
@@ -175,10 +271,12 @@ export default function AdminBooksManagementScreen({ navigation }) {
         setNewBookName('');
         setNewBookAuthor('');
         setNewBookPublisher('');
-        setNewBookPublicationDate('');
+        setNewBookPublicationDateString('');
+        setNewBookPublicationDate(null);
         setNewBookPrice('');
-        setNewBookGenre('');
-        setNewBookImage(null);
+        setNewBookGenre([]);
+        setNewBookImageURI(null);
+        setNewBookDescription('');
     };
 
     const handleEditBook = async () => {
@@ -319,7 +417,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
                 onPress={() => setDialogVisible(true)}
             />
 
-            {/* Add Book Dialog */}
+            {/* Add new book dialog */}
             <Dialog style={styles.dialogStyle} visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
                 <Dialog.Title>Thêm sách mới</Dialog.Title>
                 <Dialog.Content>
@@ -327,7 +425,9 @@ export default function AdminBooksManagementScreen({ navigation }) {
                         <TextInput
                             label="Tên sách"
                             value={newBookName}
-                            onChangeText={setNewBookName}
+                            onChangeText={text => {
+                                setNewBookName(text);
+                            }}
                             mode="outlined"
                             style={styles.dialogInput}
                         />
@@ -348,7 +448,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
                         <TouchableOpacity onPress={() => setShowPicker(true)}>
                             <TextInput
                                 label="Ngày xuất bản"
-                                value={newBookPublicationDate}
+                                value={newBookPublicationDateString}
                                 mode="outlined"
                                 style={styles.dialogInput}
                                 placeholder="DD/MM/YYYY"
@@ -370,23 +470,38 @@ export default function AdminBooksManagementScreen({ navigation }) {
                             onChangeText={setNewBookPrice}
                             mode="outlined"
                             style={styles.dialogInput}
-                            keyboardType="numeric"
                         />
-                        <TextInput
-                            label="Thể loại"
-                            value={newBookGenre}
-                            onChangeText={setNewBookGenre}
-                            mode="outlined"
-                            style={styles.dialogInput}
+                        <Dropdown
+                            style={[styles.dropdown, isGenresDropdownFocus && { borderColor: 'blue' }]}
+                            placeholderStyle={{ fontSize: 16 }}
+                            selectedTextStyle={{ fontSize: 16 }}
+                            inputSearchStyle={{ fontSize: 16 }}
+                            data={genres}
+                            search
+                            maxHeight={300}
+                            labelField="name"
+                            valueField="id"
+                            placeholder={!isGenresDropdownFocus ? 'Chọn thể loại' : '...'}
+                            searchPlaceholder="Tìm kiếm..."
+                            onFocus={() => setIsGenresDropdownFocus(true)}
+                            onBlur={() => setIsGenresDropdownFocus(false)}
+                            onChange={item => {
+                                const genre = {
+                                    id: item.id,
+                                    name: item.name,
+                                }
+                                setNewBookGenre(genre);
+                                setIsGenresDropdownFocus(false);
+                            }}
                         />
                         <TouchableOpacity
                             style={styles.imagePickerButton}
                             onPress={handleImagePickerPress}
                         >
-                            {newBookImage ? (
+                            {newBookImageURI ? (
                                 <>
                                     <Image
-                                        source={{ uri: newBookImage }}
+                                        source={{ uri: newBookImageURI }}
                                         style={styles.previewImage}
                                     />
                                     <Text>Chạm để xóa ảnh</Text>
@@ -395,6 +510,15 @@ export default function AdminBooksManagementScreen({ navigation }) {
                                 <Text>Thêm ảnh bìa sách</Text>
                             }
                         </TouchableOpacity>
+                        <TextInput
+                            label="Mô tả sách"
+                            value={newBookDescription}
+                            onChangeText={setNewBookDescription}
+                            mode="outlined"
+                            style={styles.dialogInput}
+                            multiline={true}
+                            numberOfLines={10}
+                        />
                     </ScrollView>
                 </Dialog.Content>
                 <Dialog.Actions>
@@ -402,7 +526,20 @@ export default function AdminBooksManagementScreen({ navigation }) {
                         resetBookFormFields();
                         setDialogVisible(false);
                     }}>Hủy</Button>
-                    <Button onPress={handleAddBook}>Thêm</Button>
+                    <Button
+                        onPress={handleAddBook}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <ActivityIndicator
+                                    animating={true}
+                                    color="#007AFF"
+                                    size="small"
+                                />
+                            </>
+                        ) : 'Thêm'}
+                    </Button>
                 </Dialog.Actions>
             </Dialog>
 
@@ -466,9 +603,20 @@ const styles = StyleSheet.create({
     },
     dialogStyle: {
         borderRadius: 40,
+        maxHeight: 1000,
+        height: '80%',
     },
     scrollView: {
-        height: 400,
+        height: '80%'
+    },
+    dropdown: {
+        height: 50,
+        width: '100%',
+        borderColor: 'gray',
+        borderWidth: 1,
+        borderRadius: 3,
+        paddingHorizontal: 15,
+        backgroundColor: '#fff',
     },
     filterTypeButton: {
         alignItems: "center",
@@ -508,6 +656,7 @@ const styles = StyleSheet.create({
     },
     imagePickerButton: {
         marginTop: 10,
+        marginBottom: 10,
         alignItems: 'center',
         justifyContent: 'center',
         borderColor: '#ccc',

@@ -27,7 +27,7 @@ export default function HomeScreen() {
       author: "Paulo Coelho",
       price: "79.000đ",
       image:
-        "https://salt.tikicdn.com/cache/280x280/ts/product/66/5f/5a/7666a0fc1666b3155a0c9a612360e105.jpg",
+        "https://res.cloudinary.com/dfolztuvq/image/upload/79c63b21-f65b-4913-8370-ba8a5aa44c23_AcThuTieuTu_TuyetNhan.jpg?_a=DAGAACAVZAA0",
     },
     {
       id: "3",
@@ -35,7 +35,7 @@ export default function HomeScreen() {
       author: "José Mauro de Vasconcelos",
       price: "108.000đ",
       image:
-        "https://salt.tikicdn.com/cache/280x280/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg",
+        "https://res.cloudinary.com/dfolztuvq/image/upload/02e69e8d-9dc0-4289-91d1-d25402a53722_9094a5a9-106f-4a7a-9c57-434bad87a3d9.jpeg?_a=DAGAACAVZAA0",
     },
     {
       id: "4",
@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   bookImage: {
+    width: 160,
     height: 200,
     resizeMode: "cover",
   },
