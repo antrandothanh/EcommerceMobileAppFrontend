@@ -140,7 +140,7 @@ export default function ProfileScreen({ navigation }) {
         console.error("Token not found");
       }
     } catch (error) {
-      console.error("Error logging out: ", error);
+      console.error("Error logging out:", error);
       await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userEmail");
       setIsAuthenticated(false);
@@ -228,11 +228,12 @@ export default function ProfileScreen({ navigation }) {
   const isLoggedIn = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log("Token: ", token);
+      console.log("Get token from AsyncStorage:", token);
       if (token) {
         setIsAuthenticated(true);
         const userInfoString = await AsyncStorage.getItem("userInfo");
         const userInfo = JSON.parse(userInfoString);
+        console.log("Get user info from AsyncStorage:", userInfo);
         setUserInfo(userInfo);
       } else {
         setIsAuthenticated(false);
@@ -245,6 +246,7 @@ export default function ProfileScreen({ navigation }) {
 
   useEffect(() => {
     isLoggedIn();
+    
   }, []);
 
   return (

@@ -64,7 +64,7 @@ const SignInScreen = ({ navigation }) => {
                     }, 3000);
                 }
             } catch (error) {
-                // console.error("Login error hihi haha: ", error);
+                console.error("Login error:", error);
                 let errorMessage = "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin đăng nhập và thử lại sau.";
                 setSnackbarMessage(errorMessage);
                 setSnackbarVisible(true);

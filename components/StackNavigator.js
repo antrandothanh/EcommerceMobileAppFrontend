@@ -10,6 +10,7 @@ import SignUpScreen from "./SignUpScreen";
 import SignInScreen from "./SignInScreen";
 import AdminHomeScreen from './admin/AdminHomeScreen';
 import AdminGenreManagementScreen from "./admin/AdminGenreManagementScreen";
+import AdminBooksManagementScreen from "./admin/AdminBooksManagementScreen";
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,7 @@ export default function StackNavigator() {
         {/* Admin screens */}
         <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false}} />
         <Stack.Screen name="AdminGenreManagement" component={AdminGenreManagementScreen} options={{ headerShown: false}} />
+        <Stack.Screen name="AdminBooksManagement" component={AdminBooksManagementScreen} options={{ headerShown: false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
