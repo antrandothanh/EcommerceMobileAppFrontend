@@ -1,11 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Animated, Dimensions, TouchableOpacity, FlatList } from 'react-native';
-import { Surface, Text, IconButton, Button, Card } from 'react-native-paper';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Animated,
+  Dimensions,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { Surface, Text, IconButton, Button, Card } from "react-native-paper";
 
-const { width } = Dimensions.get('window');
-const DRAWER_WIDTH = width * 0.80;
+const { width } = Dimensions.get("window");
+const DRAWER_WIDTH = width * 0.8;
 
-export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQuantity, onRemoveItem }) {
+export default function CartDrawer({
+  visible,
+  onClose,
+  cartItems = [],
+  onUpdateQuantity,
+  onRemoveItem,
+}) {
   const translateX = useRef(new Animated.Value(DRAWER_WIDTH)).current;
   const [isComponentMounted, setIsComponentMounted] = useState(false);
 
@@ -25,13 +38,24 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
     });
   }, [visible]);
 
+  const formatVNCurrency = (number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    })
+      .format(number)
+      .replace("₫", "đ");
+  };
+
   const renderCartItem = ({ item }) => (
     <Card style={styles.cartItem}>
       <Card.Content style={styles.cartItemContent}>
         <Card.Cover source={{ uri: item.image }} style={styles.itemImage} />
         <View style={styles.itemDetails}>
-          <Text numberOfLines={2} style={styles.itemTitle}>{item.title}</Text>
-          <Text style={styles.itemPrice}>{item.price}</Text>
+          <Text numberOfLines={2} style={styles.itemTitle}>
+            {item.title}
+          </Text>
+          <Text style={styles.itemPrice}>{formatVNCurrency(item.price)}</Text>
           <View style={styles.quantityContainer}>
             <IconButton
               icon="minus"
@@ -59,17 +83,14 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
 
   if (!isComponentMounted && !visible) return null;
 
-  const totalAmount = cartItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.replace('đ', '').replace('.', ''));
-    return sum + price * item.quantity;
-  }, 0);
-
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.overlay} onPress={onClose} />
       <Animated.View style={[styles.drawer, { transform: [{ translateX }] }]}>
         <Surface style={styles.header}>
-          <Text variant="titleMedium" style={styles.title}>Giỏ hàng</Text>
+          <Text variant="titleMedium" style={styles.title}>
+            Giỏ hàng
+          </Text>
           <IconButton icon="close" size={24} onPress={onClose} />
         </Surface>
 
@@ -82,7 +103,7 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
             <FlatList
               data={cartItems}
               renderItem={renderCartItem}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               contentContainerStyle={styles.cartList}
             />
 
@@ -90,13 +111,13 @@ export default function CartDrawer({ visible, onClose, cartItems = [], onUpdateQ
               <View style={styles.totalContainer}>
                 <Text variant="titleMedium">Tổng cộng:</Text>
                 <Text variant="titleMedium" style={styles.totalAmount}>
-                  {totalAmount.toLocaleString()}đ
+                  {formatVNCurrency(3000000000)}
                 </Text>
               </View>
               <Button
                 mode="contained"
                 style={styles.checkoutButton}
-                onPress={() => { }}
+                onPress={() => {}}
               >
                 Thanh toán
               </Button>
@@ -115,28 +136,28 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   drawer: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     top: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     elevation: 5,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: 40,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   title: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cartList: {
     padding: 16,
@@ -145,8 +166,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cartItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   itemImage: {
     width: 80,
@@ -158,47 +179,47 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   itemPrice: {
     fontSize: 14,
-    color: '#e41e31',
-    fontWeight: 'bold',
+    color: "#e41e31",
+    fontWeight: "bold",
     marginBottom: 8,
   },
   quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   quantityText: {
     marginHorizontal: 8,
     fontSize: 16,
   },
   deleteButton: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
   emptyCart: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   totalAmount: {
-    color: '#e41e31',
-    fontWeight: 'bold',
+    color: "#e41e31",
+    fontWeight: "bold",
   },
   checkoutButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
-}); 
+});
