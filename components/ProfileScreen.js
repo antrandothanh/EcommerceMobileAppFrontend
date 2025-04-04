@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
-import { Avatar, Text, List, Surface, useTheme, Appbar } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
-import CartDrawer from './CartDrawer';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, ScrollView, TouchableOpacity } from "react-native";
+import {
+  Avatar,
+  Text,
+  List,
+  Surface,
+  useTheme,
+  Appbar,
+} from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
+import CartDrawer from "./CartDrawer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../config";
+import axios from "axios";
 
 // Sample book data
 const sampleBooks = [
@@ -88,14 +95,26 @@ export default function ProfileScreen({ navigation }) {
 
   const menuItems = [
     {
-      title: 'Chỉnh sửa thông tin cá nhân',
-      icon: 'person-outline',
-      onPress: () => navigation.navigate('EditProfile')
+      title: "Chỉnh sửa thông tin cá nhân",
+      icon: "person-outline",
+      onPress: () => navigation.navigate("EditProfile"),
     },
-    { title: 'Đơn hàng của tôi', icon: 'cart-outline', onPress: () => navigation.navigate('MyOrder') },
-    { title: 'Sách yêu thích', icon: 'heart-outline', onPress: () => { } },
-    { title: 'Cài đặt thông báo', icon: 'notifications-outline', onPress: () => navigation.navigate('EditNotification') },
-    { title: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', onPress: () => { } },
+    {
+      title: "Đơn hàng của tôi",
+      icon: "cart-outline",
+      onPress: () => navigation.navigate("MyOrder"),
+    },
+    { title: "Sách yêu thích", icon: "heart-outline", onPress: () => {} },
+    {
+      title: "Cài đặt thông báo",
+      icon: "notifications-outline",
+      onPress: () => navigation.navigate("EditNotification"),
+    },
+    {
+      title: "Trợ giúp & Hỗ trợ",
+      icon: "help-circle-outline",
+      onPress: () => {},
+    },
   ];
 
   const addToCart = (book) => {
@@ -118,14 +137,14 @@ export default function ProfileScreen({ navigation }) {
       const token = await AsyncStorage.getItem("userToken");
 
       const data = {
-        "token": token
+        token: token,
       };
 
       if (token) {
         const response = await axios.post(API_URL, data, {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -145,7 +164,7 @@ export default function ProfileScreen({ navigation }) {
       await AsyncStorage.removeItem("userEmail");
       setIsAuthenticated(false);
     }
-  }
+  };
 
   // Render different content based on authentication status
   const renderContent = () => {
@@ -155,10 +174,7 @@ export default function ProfileScreen({ navigation }) {
         <ScrollView>
           <Surface style={styles.header} elevation={1}>
             <View style={styles.avatarContainer}>
-              <Avatar.Image
-                size={100}
-                source={{ uri: userInfo.avatar }}
-              />
+              <Avatar.Image size={100} source={{ uri: userInfo.avatar }} />
             </View>
             <View style={styles.userInfo}>
               <Text variant="headlineSmall" style={styles.name}>
@@ -176,18 +192,32 @@ export default function ProfileScreen({ navigation }) {
                 <List.Item
                   key={item.title}
                   title={item.title}
-                  left={props => <Ionicons {...props} name={item.icon} size={24} />}
-                  right={props => <List.Icon {...props} icon="chevron-right" />}
+                  left={(props) => (
+                    <Ionicons {...props} name={item.icon} size={24} />
+                  )}
+                  right={(props) => (
+                    <List.Icon {...props} icon="chevron-right" />
+                  )}
                   onPress={item.onPress}
                 />
               ))}
             </List.Section>
           </Surface>
 
-          <Surface style={[styles.menuContainer, styles.logoutContainer]} elevation={1}>
+          <Surface
+            style={[styles.menuContainer, styles.logoutContainer]}
+            elevation={1}
+          >
             <List.Item
               title="Đăng xuất"
-              left={props => <Ionicons {...props} name="log-out-outline" size={24} color={theme.colors.error} />}
+              left={(props) => (
+                <Ionicons
+                  {...props}
+                  name="log-out-outline"
+                  size={24}
+                  color={theme.colors.error}
+                />
+              )}
               titleStyle={{ color: theme.colors.error }}
               onPress={handleLogout}
             />
@@ -198,8 +228,12 @@ export default function ProfileScreen({ navigation }) {
       // Unauthenticated user view
       return (
         <View style={styles.unauthContainer}>
-          <Text variant="headlineMedium" style={styles.welcomeText}>Chào mừng đến với Bookstore</Text>
-          <Text variant="bodyMedium" style={styles.subText}>Đăng nhập hoặc đăng ký để tiếp tục</Text>
+          <Text variant="headlineMedium" style={styles.welcomeText}>
+            Chào mừng đến với Bookstore
+          </Text>
+          <Text variant="bodyMedium" style={styles.subText}>
+            Đăng nhập hoặc đăng ký để tiếp tục
+          </Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -242,11 +276,10 @@ export default function ProfileScreen({ navigation }) {
       console.error("Error checking login status: ", error);
       setIsAuthenticated(false);
     }
-  }
+  };
 
   useEffect(() => {
     isLoggedIn();
-    
   }, []);
 
   return (
@@ -274,50 +307,50 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   appbar: {
     elevation: 0,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   header: {
     padding: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     marginBottom: 16,
   },
   avatarContainer: {
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
   },
   editAvatarButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
-    right: '35%',
-    backgroundColor: '#ffffff',
+    right: "35%",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   userInfo: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
   },
   name: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   email: {
-    color: '#666666',
+    color: "#666666",
     marginTop: 4,
   },
   joinDate: {
-    color: '#999999',
+    color: "#999999",
     marginTop: 4,
   },
   menuContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   logoutContainer: {
     marginBottom: 32,
@@ -325,48 +358,47 @@ const styles = StyleSheet.create({
   // Styles for unauthenticated view
   unauthContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   welcomeText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subText: {
-    color: '#666666',
+    color: "#666666",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     marginTop: 20,
   },
   authButton: {
     paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 16,
-    width: '100%',
+    width: "100%",
   },
   loginButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: "#2196F3",
   },
   loginButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
+    color: "#ffffff",
+    fontWeight: "bold",
     fontSize: 16,
   },
   signupButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#2196F3',
+    borderColor: "#2196F3",
   },
   signupButtonText: {
-    color: '#2196F3',
-    fontWeight: 'bold',
+    color: "#2196F3",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });
-
