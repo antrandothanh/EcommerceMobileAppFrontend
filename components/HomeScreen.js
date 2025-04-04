@@ -120,7 +120,7 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.bookItem}>
       <Card
         style={styles.bookCard}
-        onPress={() => navigation.navigate("BookDetail")}
+        onPress={() => navigation.navigate("BookDetail", { book: item })}
       >
         <Card.Cover source={{ uri: item.image }} style={styles.bookImage} />
         <Card.Content>
@@ -187,7 +187,7 @@ export default function HomeScreen({ navigation }) {
         <BookSection title="Sách Bán Chạy" data={books} />
         <BookSection title="Sách Mới Phát Hành" data={books} />
         <BookSection title="Sách Văn Học" data={literatureBooks} />
-        <BookSection title="Sách Tâm Lí - Kĩ Năng Sống" data={selfHelpBooks} />
+        <BookSection title="Sách Tâm Lý - Kỹ Năng Sống" data={selfHelpBooks} />
         <BookSection title="Sách Kinh Tế" data={businessBooks} />
         <BookSection title="Sách Thiếu Nhi" data={childrenBooks} />
         <BookSection title="Sách Giáo Khoa - Tham Khảo" data={referenceBooks} />

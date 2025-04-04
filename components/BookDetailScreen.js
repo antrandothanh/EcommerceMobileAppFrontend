@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -9,10 +9,24 @@ import {
   RefreshControl,
   TextInput,
 } from "react-native";
-import { Text, Button, Appbar, Dialog, Avatar, Card, Divider } from "react-native-paper";
+import {
+  Text,
+  Button,
+  Appbar,
+  Dialog,
+  Avatar,
+  Card,
+  Divider,
+} from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import CartDrawer from "./CartDrawer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function BookDetailScreen({ navigation }) {
+export default function BookDetailScreen({ navigation, route }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartVisible, setCartVisible] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [book, setBook] = useState(route.params.book);
   const [refreshing, setRefreshing] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -25,18 +39,24 @@ export default function BookDetailScreen({ navigation }) {
       user: "Nguyễn Văn A",
       avatar: "https://randomuser.me/api/portraits/men/32.jpg",
       rating: 5,
-      comment: "Sách rất hay, nội dung ý nghĩa và dễ hiểu. Tôi đã học được nhiều điều từ cuốn sách này.",
-      date: "15/05/2023"
+      comment:
+        "Sách rất hay, nội dung ý nghĩa và dễ hiểu. Tôi đã học được nhiều điều từ cuốn sách này.",
+      date: "15/05/2023",
     },
     {
       id: 2,
       user: "Trần Thị B",
       avatar: "https://randomuser.me/api/portraits/women/44.jpg",
       rating: 4,
-      comment: "Cuốn sách giúp tôi hiểu thêm về văn hóa Nhật Bản và cách sống tích cực.",
-      date: "20/04/2023"
-    }
+      comment:
+        "Cuốn sách giúp tôi hiểu thêm về văn hóa Nhật Bản và cách sống tích cực.",
+      date: "20/04/2023",
+    },
   ]);
+
+  useEffect(() => {
+    checkIsLoggedIn();
+  }, [isLoggedIn]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -45,9 +65,33 @@ export default function BookDetailScreen({ navigation }) {
     }, 2000);
   };
 
-  // Sample book description - replace with your actual description
-  const bookDescription =
-    "Ikigai là một cuốn sách về nghệ thuật sống của người Nhật. Ikigai được hiểu là lý do để bạn thức dậy mỗi sáng, là sự kết hợp giữa đam mê, sứ mệnh, nghề nghiệp và công việc mà bạn giỏi. Cuốn sách này khám phá bí quyết sống lâu, sống khỏe và sống hạnh phúc của người dân làng Okinawa, Nhật Bản - nơi có tỷ lệ người sống thọ trên 100 tuổi cao nhất thế giới. Thông qua việc tìm ra ikigai của bản thân, bạn có thể cải thiện sức khỏe thể chất và tinh thần, tìm thấy niềm vui trong cuộc sống hàng ngày và đạt được sự cân bằng hoàn hảo.";
+  const formatVNCurrency = (number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    })
+      .format(number)
+      .replace("₫", "đ");
+  };
+
+  const formatVNDate = (date) => {
+    // Because the type of date is string, we need to convert it to Date object
+    const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
+    return formattedDate;
+  };
+
+  const checkIsLoggedIn = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    if (token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  };
 
   // Toggle description expansion
   const toggleDescription = () => {
@@ -60,12 +104,18 @@ export default function BookDetailScreen({ navigation }) {
     setDialogVisible(true);
   };
 
+  const addToCart = (book) => {};
+
+  const updateCartItemQuantity = (itemId, newQuantity) => {};
+
+  const removeFromCart = (itemId) => {};
+
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Tên sách" />
-        <Appbar.Action icon="cart" />
+        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
       </Appbar.Header>
       <ScrollView
         style={styles.scrollViewContainer}
@@ -88,11 +138,9 @@ export default function BookDetailScreen({ navigation }) {
           />
         </View>
         <View style={styles.bookInfoContainer}>
-          <Text style={styles.bookTitleText}>
-            Ikigai - Đi Tìm Lý Do Thức Dậy Mỗi Sáng
-          </Text>
+          <Text style={styles.bookTitleText}>{book.name}</Text>
 
-          <Text style={styles.priceText}>79.000 đ</Text>
+          <Text style={styles.priceText}>{formatVNCurrency(book.price)}</Text>
 
           <Button
             mode="contained"
@@ -108,17 +156,17 @@ export default function BookDetailScreen({ navigation }) {
           <View style={styles.infoTable}>
             <View style={styles.tableRow}>
               <Text style={styles.tableTitle}>Tác giả</Text>
-              <Text style={styles.tableContent}>
-                Hector Garcia & Francesc Miralles
-              </Text>
+              <Text style={styles.tableContent}>{book.author}</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={styles.tableTitle}>Nhà xuất bản</Text>
-              <Text style={styles.tableContent}>Kim Đồng</Text>
+              <Text style={styles.tableContent}>{book.publisher}</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={styles.tableTitle}>Ngày xuất bản</Text>
-              <Text style={styles.tableContent}>20/2/2025</Text>
+              <Text style={styles.tableContent}>
+                {formatVNDate(book.publicationDate)}
+              </Text>
             </View>
           </View>
           <View style={styles.bookDescription}>
@@ -127,7 +175,7 @@ export default function BookDetailScreen({ navigation }) {
               style={styles.descriptionText}
               numberOfLines={showFullDescription ? null : 3}
             >
-              {bookDescription}
+              {book.description}
             </Text>
             <TouchableOpacity onPress={toggleDescription}>
               <Text style={styles.showMoreButton}>
@@ -135,85 +183,120 @@ export default function BookDetailScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           </View>
-          
+
           {/* Reviews Section */}
           <View style={styles.reviewsSection}>
             <Text style={styles.sectionTitle}>Đánh giá & Nhận xét</Text>
-            
+
             {/* Overall Rating */}
             <View style={styles.overallRating}>
               <Text style={styles.ratingNumber}>4.5</Text>
               <View style={styles.starsContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Ionicons 
+                  <Ionicons
                     key={star}
-                    name={star <= 4 ? "star" : (star === 5 ? "star-half" : "star-outline")} 
-                    size={24} 
-                    color="#FFD700" 
+                    name={
+                      star <= 4
+                        ? "star"
+                        : star === 5
+                        ? "star-half"
+                        : "star-outline"
+                    }
+                    size={24}
+                    color="#FFD700"
                   />
                 ))}
               </View>
               <Text style={styles.ratingCount}>{reviews.length} đánh giá</Text>
             </View>
-            
+
             {/* Add Review */}
-            <Card style={styles.addReviewCard}>
-              <Card.Content>
-                <Text style={styles.addReviewTitle}>Thêm đánh giá của bạn</Text>
-                
-                {/* Rating Input */}
-                <View style={styles.ratingInput}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <TouchableOpacity 
-                      key={star}
-                      onPress={() => setUserRating(star)}
+            {isLoggedIn ? (
+              <Card style={styles.addReviewCard}>
+                <Card.Content>
+                  <Text style={styles.addReviewTitle}>
+                    Thêm đánh giá của bạn
+                  </Text>
+
+                  {/* Rating Input */}
+                  <View style={styles.ratingInput}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <TouchableOpacity
+                        key={star}
+                        onPress={() => setUserRating(star)}
+                      >
+                        <Ionicons
+                          name={star <= userRating ? "star" : "star-outline"}
+                          size={32}
+                          color="#FFD700"
+                          style={styles.starInput}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Comment Input */}
+                  <TextInput
+                    style={styles.commentInput}
+                    placeholder="Viết nhận xét của bạn..."
+                    multiline
+                    numberOfLines={4}
+                    value={userComment}
+                    onChangeText={setUserComment}
+                  />
+
+                  <Button
+                    mode="contained"
+                    style={styles.submitButton}
+                    onPress={() => {
+                      if (userRating > 0 && userComment.trim() !== "") {
+                        const newReview = {
+                          id: reviews.length + 1,
+                          user: "Bạn",
+                          avatar:
+                            "https://randomuser.me/api/portraits/lego/1.jpg",
+                          rating: userRating,
+                          comment: userComment,
+                          date: new Date().toLocaleDateString("vi-VN"),
+                        };
+                        setReviews([newReview, ...reviews]);
+                        setUserRating(0);
+                        setUserComment("");
+                      } else {
+                        alert("Vui lòng chọn số sao và viết nhận xét");
+                      }
+                    }}
+                  >
+                    Gửi đánh giá
+                  </Button>
+                </Card.Content>
+              </Card>
+            ) : (
+              <Card style={styles.addReviewCard}>
+                <Card.Content style={styles.blurredContent}>
+                  <View style={styles.loginAnnouncement}>
+                    <Text style={styles.loginMessage}>
+                      Vui lòng đăng nhập để đánh giá sách
+                    </Text>
+                    <Button
+                      mode="contained"
+                      style={styles.loginButton}
+                      icon={({ size, color }) => (
+                        <Ionicons
+                          name="log-in-outline"
+                          size={size}
+                          color={color}
+                        />
+                      )}
+                      onPress={() => navigation.navigate("SignIn")}
                     >
-                      <Ionicons 
-                        name={star <= userRating ? "star" : "star-outline"} 
-                        size={32} 
-                        color="#FFD700" 
-                        style={styles.starInput}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                
-                {/* Comment Input */}
-                <TextInput
-                  style={styles.commentInput}
-                  placeholder="Viết nhận xét của bạn..."
-                  multiline
-                  numberOfLines={4}
-                  value={userComment}
-                  onChangeText={setUserComment}
-                />
-                
-                <Button 
-                  mode="contained" 
-                  style={styles.submitButton}
-                  onPress={() => {
-                    if (userRating > 0 && userComment.trim() !== "") {
-                      const newReview = {
-                        id: reviews.length + 1,
-                        user: "Bạn",
-                        avatar: "https://randomuser.me/api/portraits/lego/1.jpg",
-                        rating: userRating,
-                        comment: userComment,
-                        date: new Date().toLocaleDateString('vi-VN')
-                      };
-                      setReviews([newReview, ...reviews]);
-                      setUserRating(0);
-                      setUserComment("");
-                    } else {
-                      alert("Vui lòng chọn số sao và viết nhận xét");
-                    }
-                  }}
-                >
-                  Gửi đánh giá
-                </Button>
-              </Card.Content>
-            </Card>
-            
+                      Đăng nhập
+                    </Button>
+                  </View>
+                </Card.Content>
+              </Card>
+            )}
+
             {/* Reviews List */}
             <View style={styles.reviewsList}>
               {reviews.map((review) => (
@@ -226,18 +309,18 @@ export default function BookDetailScreen({ navigation }) {
                         <Text style={styles.reviewDate}>{review.date}</Text>
                       </View>
                     </View>
-                    
+
                     <View style={styles.reviewRating}>
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Ionicons 
+                        <Ionicons
                           key={star}
-                          name={star <= review.rating ? "star" : "star-outline"} 
-                          size={16} 
-                          color="#FFD700" 
+                          name={star <= review.rating ? "star" : "star-outline"}
+                          size={16}
+                          color="#FFD700"
                         />
                       ))}
                     </View>
-                    
+
                     <Text style={styles.reviewComment}>{review.comment}</Text>
                   </Card.Content>
                 </Card>
@@ -246,6 +329,8 @@ export default function BookDetailScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+
+      {/* Select book quantity dialog */}
       <Dialog visible={dialogVisible} onDismiss={() => setDialogVisible(false)}>
         <Dialog.Title>Chọn số lượng</Dialog.Title>
         <Dialog.Content>
@@ -284,6 +369,15 @@ export default function BookDetailScreen({ navigation }) {
           </Button>
         </Dialog.Actions>
       </Dialog>
+
+      {/* Cart drawer */}
+      <CartDrawer
+        visible={cartVisible}
+        onClose={() => setCartVisible(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={updateCartItemQuantity}
+        onRemoveItem={removeFromCart}
+      />
     </View>
   );
 }
@@ -321,7 +415,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
     lineHeight: 35,
-    color: "#555",
   },
   priceText: {
     fontSize: 40,
@@ -369,15 +462,15 @@ const styles = StyleSheet.create({
   quantitySelector: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     height: 60,
-    width: '100%',
+    width: "100%",
     borderRadius: 8,
   },
   quantityButton: {
     backgroundColor: "#f0f0f0",
-    height: '100%',
+    height: "100%",
     width: 70,
     justifyContent: "center",
     alignItems: "center",
@@ -390,7 +483,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     width: 80,
-    height: '100%',
+    height: "100%",
     textAlign: "center",
     textAlignVertical: "center",
     fontSize: 24,
@@ -403,7 +496,7 @@ const styles = StyleSheet.create({
   plusButton: {
     color: "#28a745",
   },
-  
+
   // Review section styles
   reviewsSection: {
     marginTop: 20,
@@ -499,5 +592,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: "#333",
+  },
+  loginAnnouncement: {
+    height: 200,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loginMessage: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 20,
+  },
+  loginButton: {
+    backgroundColor: "#3da8b9",
+    borderRadius: 50,
   },
 });
