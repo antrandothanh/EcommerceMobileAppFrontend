@@ -14,9 +14,9 @@ import axios from "axios";
 import { API_BASE_URL } from "../config";
 
 export default function HomeScreen({ navigation }) {
+  const [books, setBooks] = useState([]);
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState(books);
-  const [books, setBooks] = useState([]);
   const [literatureBooks, setLiteratureBooks] = useState([]);
   const [selfHelpBooks, setSelfHelpBooks] = useState([]);
   const [businessBooks, setBusinessBooks] = useState([]);
@@ -117,7 +117,7 @@ export default function HomeScreen({ navigation }) {
   const removeFromCart = (itemId) => {};
 
   const renderBookItem = ({ item }) => (
-    <View style={styles.bookItem}>
+    <View style={styles.bookItem} key={item.id}>
       <Card
         style={styles.bookCard}
         onPress={() => navigation.navigate("BookDetail", { book: item })}

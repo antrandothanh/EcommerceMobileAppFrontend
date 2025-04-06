@@ -23,9 +23,6 @@ const SignUpScreen = ({ navigation }) => {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    // API URL
-    const API_URL = API_BASE_URL + '/api/users';
-
     // Validation functions
     const validateName = () => {
         if (!name.trim()) {
@@ -100,13 +97,13 @@ const SignUpScreen = ({ navigation }) => {
 
             try {
                 const userData = {
-                    name,
-                    email,
-                    password,
-                    phone,
+                    name: name,
+                    email: email,
+                    password: password,
+                    phone: phone,
                     "roles": ["CUSTOMER"]
                 };
-
+                const API_URL = `${API_BASE_URL}/users`;
                 const response = await axios.post(API_URL, userData);
 
                 console.log('Registration successful:', response.data);
@@ -132,7 +129,6 @@ const SignUpScreen = ({ navigation }) => {
                 }, 3000);
 
             } catch (error) {
-                console.error('Registration error:', error);
                 let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại sau.';
                 setSnackbarMessage(errorMessage);
                 setSnackbarVisible(true);

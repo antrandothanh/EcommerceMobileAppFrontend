@@ -174,7 +174,7 @@ export default function ProfileScreen({ navigation }) {
         <ScrollView>
           <Surface style={styles.header} elevation={1}>
             <View style={styles.avatarContainer}>
-              <Avatar.Image size={100} source={{ uri: userInfo.avatar }} />
+              <Avatar.Image size={100} source={require('../assets/DefaultAvatar.jpg')} />
             </View>
             <View style={styles.userInfo}>
               <Text variant="headlineSmall" style={styles.name}>

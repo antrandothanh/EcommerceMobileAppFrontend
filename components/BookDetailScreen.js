@@ -21,48 +21,68 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import CartDrawer from "./CartDrawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CommentCard from "./CommentCard";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 export default function BookDetailScreen({ navigation, route }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [book, setBook] = useState(route.params.book);
+  const [bookReviews, setBookReviews] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState(1);
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState("");
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      user: "Nguyễn Văn A",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      rating: 5,
-      comment:
-        "Sách rất hay, nội dung ý nghĩa và dễ hiểu. Tôi đã học được nhiều điều từ cuốn sách này.",
-      date: "15/05/2023",
-    },
-    {
-      id: 2,
-      user: "Trần Thị B",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-      rating: 4,
-      comment:
-        "Cuốn sách giúp tôi hiểu thêm về văn hóa Nhật Bản và cách sống tích cực.",
-      date: "20/04/2023",
-    },
-  ]);
 
   useEffect(() => {
     checkIsLoggedIn();
   }, [isLoggedIn]);
 
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
+    fetchReviews();
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
+  };
+
+  const fetchReviews = async () => {
+    try {
+      // Get all reviews from all books
+      const API_GET_REVIEWS_URL = API_BASE_URL + "/ratings";
+      const bookReviewsResponse = await axios.get(API_GET_REVIEWS_URL);
+      // Filter reviews for book with book id.
+      const bookId = route.params.book.id;
+      const bookReviews = bookReviewsResponse.data.result.filter(
+        (review) => review.bookId === bookId
+      );
+      // Get all users.
+      const API_GET_USERS_URL = API_BASE_URL + "/users";
+      const usersResponse = await axios.get(API_GET_USERS_URL);
+      const bookReviewsData = bookReviews.map((review) => {
+        const user = usersResponse.data.result.find(
+          (user) => user.id === review.customerId
+        );
+        return {
+          bookId: review.bookId,
+          userName: user.name,
+          score: review.score,
+          comment: review.comment,
+          createdAtFormatted: formatVNDate(review.createdAt),
+        };
+      });
+      setBookReviews(bookReviewsData);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
   };
 
   const formatVNCurrency = (number) => {
@@ -88,6 +108,9 @@ export default function BookDetailScreen({ navigation, route }) {
     const token = await AsyncStorage.getItem("userToken");
     if (token) {
       setIsLoggedIn(true);
+      const userInfoString = await AsyncStorage.getItem("userInfo");
+      // const userInfo = JSON.parse(userInfoString);
+      // console.log(userInfo);
     } else {
       setIsLoggedIn(false);
     }
@@ -110,6 +133,34 @@ export default function BookDetailScreen({ navigation, route }) {
 
   const removeFromCart = (itemId) => {};
 
+  const handleSendComment = async () => {
+    if (userComment.trim() !== "" && userRating > 0) {
+      try {
+        const userInfoString = await AsyncStorage.getItem("userInfo");
+        const userInfo = JSON.parse(userInfoString);
+        const userId = userInfo.id;
+        const bookId = route.params.book.id;
+        const newReviewData = {
+          customerId: userId,
+          bookId: bookId,
+          score: userRating,
+          comment: userComment,
+        };
+        const API_URL = API_BASE_URL + "/ratings";
+        const response = await axios.post(API_URL, newReviewData);
+        alert("Đánh giá của bạn đã được gửi thành công");
+        setUserComment("");
+        setUserRating(0);
+        await onRefresh();
+      } catch (error) {
+        console.error("Error sending review:", error);
+        alert("Đã có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.");
+      }
+    } else {
+      alert("Vui lòng nhập nhận xét và chọn số sao trước khi gửi");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
@@ -131,7 +182,7 @@ export default function BookDetailScreen({ navigation, route }) {
         <View style={styles.bookImageContainer}>
           <Image
             source={{
-              uri: "https://res.cloudinary.com/dfolztuvq/image/upload/31c423b4-87c1-4341-b64f-d3a1785fa60d_feacbd60-25ef-42f8-8615-5509c802ce51.jpeg?_a=DAGAACAVZAA0",
+              uri: book.image,
             }}
             style={styles.bookImage}
             resizeMode="contain"
@@ -207,7 +258,9 @@ export default function BookDetailScreen({ navigation, route }) {
                   />
                 ))}
               </View>
-              <Text style={styles.ratingCount}>{reviews.length} đánh giá</Text>
+              <Text style={styles.ratingCount}>
+                {bookReviews.length} đánh giá
+              </Text>
             </View>
 
             {/* Add Review */}
@@ -248,24 +301,7 @@ export default function BookDetailScreen({ navigation, route }) {
                   <Button
                     mode="contained"
                     style={styles.submitButton}
-                    onPress={() => {
-                      if (userRating > 0 && userComment.trim() !== "") {
-                        const newReview = {
-                          id: reviews.length + 1,
-                          user: "Bạn",
-                          avatar:
-                            "https://randomuser.me/api/portraits/lego/1.jpg",
-                          rating: userRating,
-                          comment: userComment,
-                          date: new Date().toLocaleDateString("vi-VN"),
-                        };
-                        setReviews([newReview, ...reviews]);
-                        setUserRating(0);
-                        setUserComment("");
-                      } else {
-                        alert("Vui lòng chọn số sao và viết nhận xét");
-                      }
-                    }}
+                    onPress={handleSendComment}
                   >
                     Gửi đánh giá
                   </Button>
@@ -299,32 +335,21 @@ export default function BookDetailScreen({ navigation, route }) {
 
             {/* Reviews List */}
             <View style={styles.reviewsList}>
-              {reviews.map((review) => (
-                <Card key={review.id} style={styles.reviewCard}>
-                  <Card.Content>
-                    <View style={styles.reviewHeader}>
-                      <Avatar.Image size={40} source={{ uri: review.avatar }} />
-                      <View style={styles.reviewUser}>
-                        <Text style={styles.userName}>{review.user}</Text>
-                        <Text style={styles.reviewDate}>{review.date}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.reviewRating}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Ionicons
-                          key={star}
-                          name={star <= review.rating ? "star" : "star-outline"}
-                          size={16}
-                          color="#FFD700"
-                        />
-                      ))}
-                    </View>
-
-                    <Text style={styles.reviewComment}>{review.comment}</Text>
-                  </Card.Content>
-                </Card>
-              ))}
+              {bookReviews && bookReviews.length > 0 ? (
+                bookReviews.map((review, index) => (
+                  <CommentCard
+                    key={index}
+                    userName={review.userName}
+                    createdAt={review.createdAtFormatted}
+                    score={review.score}
+                    comment={review.comment}
+                  />
+                ))
+              ) : (
+                <Text style={styles.noReviewsAnnouncement}>
+                  Chưa có đánh giá nào.
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -396,7 +421,7 @@ const styles = StyleSheet.create({
   },
   bookImageContainer: {
     height: 500,
-    width: "100%", // Đặt chiều rộng bằng 100% của màn hìn
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ffffff",
@@ -564,34 +589,10 @@ const styles = StyleSheet.create({
   reviewsList: {
     marginTop: 10,
   },
-  reviewCard: {
-    marginBottom: 10,
-    elevation: 1,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  reviewUser: {
-    marginLeft: 10,
-  },
-  userName: {
-    fontWeight: "bold",
+  noReviewsAnnouncement: {
     fontSize: 16,
-  },
-  reviewDate: {
-    fontSize: 12,
     color: "#666",
-  },
-  reviewRating: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  reviewComment: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#333",
+    textAlign: "center",
   },
   loginAnnouncement: {
     height: 200,

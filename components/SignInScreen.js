@@ -93,7 +93,6 @@ const SignInScreen = ({ navigation }) => {
                 name: response.data.result.name,
                 phone: response.data.result.phone,
                 email: response.data.result.email,
-                avatar: "https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random",
                 createdAt: formattedDate,
                 role: response.data.result.roles[0].name
             }
