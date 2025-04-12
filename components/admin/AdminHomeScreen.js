@@ -12,10 +12,10 @@ export default function AdminHomeScreen({ navigation }) {
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const menuItems = [
-        { title: 'Quản lí sách', icon: 'book-outline', onPress: () => { navigation.navigate("AdminBooksManagement"); } },
-        { title: 'Quản lí thể loại', icon: 'library-outline', onPress: () => { navigation.navigate('AdminGenreManagement') } },
-        { title: 'Quản lí đơn hàng', icon: 'cart-outline', onPress: () => { alert("Quản lí đơn hàng") } },
-        { title: 'Quản lí người dùng', icon: 'people-outline', onPress: () => { alert("Quản lí người dùng") } },
+        { title: 'Quản lý sách', icon: 'book-outline', onPress: () => { navigation.navigate("AdminBooksManagement"); } },
+        { title: 'Quản lý thể loại', icon: 'library-outline', onPress: () => { navigation.navigate('AdminGenreManagement') } },
+        { title: 'Quản lý đơn hàng', icon: 'cart-outline', onPress: () => { alert("Quản lý đơn hàng") } },
+        { title: 'Quản lý người dùng', icon: 'people-outline', onPress: () => { alert("Quản lý người dùng") } },
         { title: 'Thống kê', icon: 'bar-chart-outline', onPress: () => { alert("Thống kê") } },
     ];
 

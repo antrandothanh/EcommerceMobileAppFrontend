@@ -51,9 +51,25 @@ export default function AdminBooksManagementScreen({ navigation }) {
   const [newBookImageURI, setNewBookImageURI] = useState(null);
   const [newBookDescription, setNewBookDescription] = useState("");
   const [editingBook, setEditingBook] = useState(null);
-  const [isBookImageVisible, setIsBookImageVisible] = useState(false);
+  const [isNewBookImageVisible, setIsNewBookImageVisible] = useState(false);
   const [genres, setGenres] = useState([]);
   const [isGenresDropdownFocus, setIsGenresDropdownFocus] = useState(false);
+  const [isUpdatedBookImageVisible, setIsUpdatedBookImageVisible] =
+    useState(false);
+  const [updatedBookName, setUpdatedBookName] = useState("");
+  const [updatedBookAuthor, setUpdatedBookAuthor] = useState("");
+  const [updatedBookPublisher, setUpdatedBookPublisher] = useState("");
+  const [updatedBookPublicationDate, setUpdatedBookPublicationDate] =
+    useState("");
+  const [
+    updatedBookPublicationDateString,
+    setUpdatedBookPublicationDateString,
+  ] = useState("");
+  const [updatedBookPrice, setUpdatedBookPrice] = useState("");
+  const [updatedBookGenre, setUpdatedBookGenre] = useState(null);
+  const [updatedBookImage, setUpdatedBookImage] = useState("");
+  const [updatedBookImageURI, setUpdatedBookImageURI] = useState(null);
+  const [updatedBookDescription, setUpdatedBookDescription] = useState("");
 
   // Fetch data when access to this screen for the first time
   useEffect(() => {
@@ -97,12 +113,12 @@ export default function AdminBooksManagementScreen({ navigation }) {
     }
   };
 
-  // Handle image picker
-  const handleImagePickerPress = async () => {
+  // Handle new book image picker
+  const handleNewBookImagePickerPress = async () => {
     try {
-      if (isBookImageVisible) {
+      if (isNewBookImageVisible) {
         setNewBookImageURI("");
-        setIsBookImageVisible(false);
+        setIsNewBookImageVisible(false);
       } else {
         let result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -112,7 +128,32 @@ export default function AdminBooksManagementScreen({ navigation }) {
         });
         if (!result.canceled) {
           setNewBookImageURI(result.assets[0].uri);
-          setIsBookImageVisible(true);
+          setIsNewBookImageVisible(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      setSnackbarMessage("Không thể chọn ảnh");
+      setSnackbarVisible(true);
+    }
+  };
+
+  // Handle updated book image picker
+  const handleUpdatedBookImagePickerPress = async () => {
+    try {
+      if (isUpdatedBookImageVisible) {
+        setUpdatedBookImageURI("");
+        setIsUpdatedBookImageVisible(false);
+      } else {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [4, 5],
+          quality: 1,
+        });
+        if (!result.canceled) {
+          setUpdatedBookImageURI(result.assets[0].uri);
+          setIsUpdatedBookImageVisible(true);
         }
       }
     } catch (error) {
@@ -162,7 +203,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
   };
 
   // Upload image to cloundinary server and return the image URL
-  const uploadImageURL = async () => {
+  const uploadImageURL = async (bookImageURI) => {
     try {
       // Check if the use logged in before
       const token = await AsyncStorage.getItem("userToken");
@@ -173,11 +214,11 @@ export default function AdminBooksManagementScreen({ navigation }) {
       }
       // Create form data for uploading image
       const formData = new FormData();
-      const filename = newBookImageURI.split("/").pop();
+      const filename = bookImageURI.split("/").pop();
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : "image";
       formData.append("files", {
-        uri: newBookImageURI,
+        uri: bookImageURI,
         name: filename,
         type,
       });
@@ -192,8 +233,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
           },
         }
       );
-      // Set image URL from the cloundinary server to the state
-      console.log("Response URL", response.data.result);
+      // Return image URL from the cloundinary server
       return response.data.result[0];
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -239,7 +279,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
         return;
       }
       // Upload image to cloundinary server and get the image URL
-      const imageURL = await uploadImageURL();
+      const imageURL = await uploadImageURL(newBookImageURI);
       // Create book data JSON object
       const bookData = {
         name: newBookName,
@@ -262,12 +302,12 @@ export default function AdminBooksManagementScreen({ navigation }) {
 
       setTimeout(() => {
         setDialogVisible(false);
-        resetBookFormFields();
+        resetAddNewBookFormFields();
         setSnackbarMessage("Thêm sách thành công");
         setSnackbarVisible(true);
         setLoading(false);
+        fetchBooks();
       }, 1000);
-      fetchBooks();
     } catch (error) {
       console.error("Error adding book:", error);
       setSnackbarMessage("Không thể thêm sách");
@@ -291,7 +331,16 @@ export default function AdminBooksManagementScreen({ navigation }) {
     setShowPicker(false);
   };
 
-  const resetBookFormFields = () => {
+  const formatDate = (date) => {
+    const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
+    return formattedDate;
+  };
+
+  const resetAddNewBookFormFields = () => {
     setNewBookName("");
     setNewBookAuthor("");
     setNewBookPublisher("");
@@ -303,25 +352,80 @@ export default function AdminBooksManagementScreen({ navigation }) {
     setNewBookDescription("");
   };
 
+  const resetUpdateBookFormFields = () => {
+    setUpdatedBookName("");
+    setUpdatedBookAuthor("");
+    setUpdatedBookPublisher("");
+    setUpdatedBookPublicationDateString("");
+    setUpdatedBookPublicationDate(null);
+    setUpdatedBookPrice("");
+    setUpdatedBookGenre([]);
+    setUpdatedBookImageURI(null);
+    setUpdatedBookDescription("");
+    setEditingBook(null);
+  };
+
   const handleEditBook = async () => {
-    if (!newBookName.trim()) {
+    // Check if all required fields are filled
+    if (!updatedBookName.trim()) {
       setSnackbarMessage("Tên sách không được để trống");
       setSnackbarVisible(true);
       return;
     }
-
+    if (!updatedBookAuthor.trim()) {
+      setSnackbarMessage("Tác giả không được để trống");
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!updatedBookPrice.trim()) {
+      setSnackbarMessage("Giá sách không được để trống");
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!updatedBookGenre) {
+      setSnackbarMessage("Vui lòng chọn thể loại sách");
+      setSnackbarVisible(true);
+      return;
+    }
+    if (!updatedBookImageURI) {
+      setSnackbarMessage("Vui lòng thêm ảnh bìa sách");
+      setSnackbarVisible(true);
+      return;
+    }
     try {
-      const token = await AsyncStorage.getItem("userToken");
+      setLoading(true);
 
+      const token = await AsyncStorage.getItem("userToken");
       if (!token) {
         setSnackbarMessage("Không tìm thấy token đăng nhập");
         setSnackbarVisible(true);
         return;
       }
 
+      // Check if the book image has changed
+      let imageURL;
+      if (updatedBookImageURI !== editingBook.image) {
+        imageURL = await uploadImageURL(updatedBookImageURI);
+      } else {
+        imageURL = updatedBookImageURI;
+      }
+
+      const updatedBookData = {
+        name: updatedBookName,
+        author: updatedBookAuthor,
+        publisher: updatedBookPublisher,
+        publicationDate: updatedBookPublicationDate,
+        description: updatedBookDescription,
+        price: updatedBookPrice,
+        genres: [updatedBookGenre],
+        image: imageURL,
+        ratings: editingBook.ratings,
+        isInStock: true,
+      };
+
       const response = await axios.put(
         `${API_BASE_URL}/books/${editingBook.id}`,
-        { name: newBookName },
+        updatedBookData,
         {
           headers: {
             "Content-Type": "application/json",
@@ -330,16 +434,19 @@ export default function AdminBooksManagementScreen({ navigation }) {
         }
       );
 
-      setEditDialogVisible(false);
-      setNewBookName("");
-      setEditingBook(null);
-      setSnackbarMessage("Cập nhật sách thành công");
-      setSnackbarVisible(true);
-      fetchBooks();
+      setTimeout(() => {
+        setEditDialogVisible(false);
+        resetUpdateBookFormFields();
+        setSnackbarMessage("Cập nhật sách thành công");
+        setSnackbarVisible(true);
+        setLoading(false);
+        fetchBooks();
+      }, 1000);
     } catch (error) {
-      console.error("Error updating book:", error);
+      // console.error("Error updating book:", error);
       setSnackbarMessage("Không thể cập nhật sách");
       setSnackbarVisible(true);
+      setLoading(false);
     }
   };
 
@@ -371,7 +478,19 @@ export default function AdminBooksManagementScreen({ navigation }) {
 
   const openEditDialog = (book) => {
     setEditingBook(book);
-    setNewBookName(book.name);
+    setUpdatedBookName(book.name);
+    setUpdatedBookAuthor(book.author);
+    setUpdatedBookPublisher(book.publisher);
+    setUpdatedBookPublicationDateString(formatDate(book.publicationDate));
+    setUpdatedBookPublicationDate(book.publicationDate);
+    setUpdatedBookPrice(book.price.toString());
+    setUpdatedBookGenre(book.genres[0]);
+    if (book.image) {
+      setUpdatedBookImageURI(book.image);
+      setIsUpdatedBookImageVisible(true);
+    }
+    setUpdatedBookImage(book.image);
+    setUpdatedBookDescription(book.description);
     setEditDialogVisible(true);
   };
 
@@ -536,7 +655,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
             />
             <TouchableOpacity
               style={styles.imagePickerButton}
-              onPress={handleImagePickerPress}
+              onPress={handleNewBookImagePickerPress}
             >
               {newBookImageURI ? (
                 <>
@@ -564,7 +683,7 @@ export default function AdminBooksManagementScreen({ navigation }) {
         <Dialog.Actions>
           <Button
             onPress={() => {
-              resetBookFormFields();
+              resetAddNewBookFormFields();
               setDialogVisible(false);
             }}
           >
@@ -588,21 +707,138 @@ export default function AdminBooksManagementScreen({ navigation }) {
 
       {/* Edit Book Dialog */}
       <Dialog
+        style={styles.dialogStyle}
         visible={editDialogVisible}
         onDismiss={() => setEditDialogVisible(false)}
       >
-        <Dialog.Title>Chỉnh sửa sách</Dialog.Title>
+        <Dialog.Title>Cập nhật thông tin sách</Dialog.Title>
         <Dialog.Content>
-          <TextInput
-            label="Tên sách"
-            value={newBookName}
-            onChangeText={setNewBookName}
-            mode="outlined"
-          />
+          <ScrollView style={styles.scrollView}>
+            <TextInput
+              label="Tên sách"
+              value={updatedBookName}
+              onChangeText={(text) => {
+                setUpdatedBookName(text);
+              }}
+              mode="outlined"
+              style={styles.dialogInput}
+            />
+            <TextInput
+              label="Tác giả"
+              value={updatedBookAuthor}
+              onChangeText={setUpdatedBookAuthor}
+              mode="outlined"
+              style={styles.dialogInput}
+            />
+            <TextInput
+              label="Nhà xuất bản"
+              value={updatedBookPublisher}
+              onChangeText={setUpdatedBookPublisher}
+              mode="outlined"
+              style={styles.dialogInput}
+            />
+            <TouchableOpacity onPress={() => setShowPicker(true)}>
+              <TextInput
+                label="Ngày xuất bản"
+                value={updatedBookPublicationDateString}
+                mode="outlined"
+                style={styles.dialogInput}
+                placeholder="DD/MM/YYYY"
+                editable={false}
+                right={<TextInput.Icon icon="calendar" />}
+              />
+              {showPicker && (
+                <DateTimePicker
+                  mode="date"
+                  display="default"
+                  value={new Date()}
+                  onChange={handleSetDateTimePicker}
+                />
+              )}
+            </TouchableOpacity>
+            <TextInput
+              label="Giá"
+              value={updatedBookPrice}
+              onChangeText={setUpdatedBookPrice}
+              mode="outlined"
+              style={styles.dialogInput}
+            />
+            <Dropdown
+              style={[
+                styles.dropdown,
+                isGenresDropdownFocus && { borderColor: "blue" },
+              ]}
+              placeholderStyle={{ fontSize: 16 }}
+              selectedTextStyle={{ fontSize: 16 }}
+              inputSearchStyle={{ fontSize: 16 }}
+              data={genres}
+              search
+              maxHeight={300}
+              labelField="name"
+              valueField="id"
+              value={updatedBookGenre}
+              placeholder={!isGenresDropdownFocus ? "Chọn thể loại" : "..."}
+              searchPlaceholder="Tìm kiếm..."
+              onFocus={() => setIsGenresDropdownFocus(true)}
+              onBlur={() => setIsGenresDropdownFocus(false)}
+              onChange={(item) => {
+                const genre = {
+                  id: item.id,
+                  name: item.name,
+                };
+                setUpdatedBookGenre(genre);
+                setIsGenresDropdownFocus(false);
+              }}
+            />
+            <TouchableOpacity
+              style={styles.imagePickerButton}
+              onPress={handleUpdatedBookImagePickerPress}
+            >
+              {updatedBookImageURI ? (
+                <>
+                  <Image
+                    source={{ uri: updatedBookImageURI }}
+                    style={styles.previewImage}
+                  />
+                  <Text>Chạm để xóa ảnh</Text>
+                </>
+              ) : (
+                <Text>Thêm ảnh bìa sách</Text>
+              )}
+            </TouchableOpacity>
+            <TextInput
+              label="Mô tả sách"
+              value={updatedBookDescription}
+              onChangeText={setUpdatedBookDescription}
+              mode="outlined"
+              style={styles.dialogInput}
+              multiline={true}
+              numberOfLines={10}
+            />
+          </ScrollView>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={() => setEditDialogVisible(false)}>Hủy</Button>
-          <Button onPress={handleEditBook}>Lưu</Button>
+          <Button
+            onPress={() => {
+              resetUpdateBookFormFields();
+              setEditDialogVisible(false);
+            }}
+          >
+            Hủy
+          </Button>
+          <Button onPress={handleEditBook} disabled={loading}>
+            {loading ? (
+              <>
+                <ActivityIndicator
+                  animating={true}
+                  color="#007AFF"
+                  size="small"
+                />
+              </>
+            ) : (
+              "Cập nhật"
+            )}
+          </Button>
         </Dialog.Actions>
       </Dialog>
 

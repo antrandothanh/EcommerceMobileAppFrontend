@@ -60,7 +60,6 @@ export default function AdminGenreManagementScreen({ navigation }) {
                 setRefreshing(false);
             }, 1000);
         } catch (error) {
-            console.error('Error fetching genres:', error);
             setSnackbarMessage('Không thể tải danh sách thể loại');
             setSnackbarVisible(true);
             setLoading(false);
@@ -105,7 +104,6 @@ export default function AdminGenreManagementScreen({ navigation }) {
             setSnackbarVisible(true);
             fetchGenres();
         } catch (error) {
-            console.error('Error adding genre:', error);
             setSnackbarMessage('Không thể thêm thể loại');
             setSnackbarVisible(true);
         }
@@ -144,7 +142,6 @@ export default function AdminGenreManagementScreen({ navigation }) {
             setSnackbarVisible(true);
             fetchGenres();
         } catch (error) {
-            console.error('Error updating genre:', error);
             setSnackbarMessage('Không thể cập nhật thể loại');
             setSnackbarVisible(true);
         }
@@ -170,8 +167,7 @@ export default function AdminGenreManagementScreen({ navigation }) {
             setSnackbarVisible(true);
             fetchGenres();
         } catch (error) {
-            console.error('Error deleting genre:', error);
-            setSnackbarMessage('Không thể xóa thể loại');
+            setSnackbarMessage('Không thể xóa thể loại này do có sách liên quan.');
             setSnackbarVisible(true);
         }
     };
