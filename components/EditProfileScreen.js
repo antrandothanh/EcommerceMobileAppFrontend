@@ -22,11 +22,22 @@ const EditProfileScreen = ({ navigation }) => {
         address: '27 Lê Quang Định, Phường 13, Quận Bình Thạnh, Tp. Hồ Chí Minh',
         profileImage: 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=random',
     });
+    const [user, setUser] = useState();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         loadUserData();
+        fetchUser();
     }, []);
+
+    const fetchUser = async () => {
+        try {
+            const userInfoString = await AsyncStorage.getItem("userInfo");
+            const userInfo = JSON.parse(userInfoString);
+        } catch (error) {
+            console.error("Error fetch user:", error);
+        }
+    }
 
     const loadUserData = async () => {
         try {

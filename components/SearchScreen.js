@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -15,6 +15,8 @@ import {
   Card,
 } from "react-native-paper";
 import CartDrawer from "./CartDrawer";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const { width } = Dimensions.get("window");
 
@@ -96,15 +98,60 @@ export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [visible, setVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(searchCategories[0]);
-
   const [cartVisible, setCartVisible] = useState(false);
   const [cartItems, setCartItems] = useState(sampleBooks);
-
+  const [books, setBooks] = useState([]);
+  const [searchedBooks, setSearchedBooks] = useState([]);
+  const [snackBarVisible, setSnackBarVisible] = useState(false);
+  const [snackBarMessage, setSnackBarMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [refresh, setRefreshing] = useState(false);
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
 
   const onChangeSearch = (query) => setSearchQuery(query);
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setSearchedBooks(books);
+    } else {
+      const filtered = books.filter(
+        (book) =>
+          book.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (book.author &&
+            book.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (book.publisher &&
+            book.publisher.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setSearchedBooks(filtered);
+    }
+  }, [searchQuery, books]);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/books`);
+      // console.log(response.data);
+      setTimeout(() => {
+        setBooks(response.data.result);
+        setSearchedBooks(response.data.result);
+        setLoading(false);
+        setRefreshing(false);
+        setSnackBarVisible(false);
+        setSnackBarMessage("");
+      }, 1000);
+    } catch (error) {
+      setSnackBarMessage("Không thể tải sách");
+      setSnackBarVisible(true);
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   const addToCart = (book) => {
     // add to cart
@@ -124,7 +171,7 @@ export default function SearchScreen() {
         <Card.Cover source={{ uri: item.image }} style={styles.bookImage} />
         <Card.Content>
           <Text numberOfLines={2} style={styles.bookTitle}>
-            {item.title}
+            {item.name}
           </Text>
           <Text style={styles.bookAuthor}>{item.author}</Text>
           <Text style={styles.bookPrice}>{item.price}</Text>
@@ -147,37 +194,13 @@ export default function SearchScreen() {
           value={searchQuery}
           style={styles.searchBar}
         />
-        <Menu
-          visible={visible}
-          onDismiss={closeMenu}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={openMenu}
-              style={styles.dropdownButton}
-            >
-              {selectedCategory.label}
-            </Button>
-          }
-        >
-          {searchCategories.map((category) => (
-            <Menu.Item
-              key={category.value}
-              onPress={() => {
-                setSelectedCategory(category);
-                closeMenu();
-              }}
-              title={category.label}
-            />
-          ))}
-        </Menu>
       </View>
 
       <FlatList
-        data={sampleBooks}
+        data={searchedBooks}
         renderItem={renderBookItem}
         keyExtractor={(item) => item.id}
-        numColumns={2}
+        numColumns={width > 500 ? 4 : 2}
         contentContainerStyle={styles.bookList}
       />
 
@@ -227,15 +250,21 @@ const styles = StyleSheet.create({
   },
   bookCard: {
     elevation: 4,
+    height: 320,
+    width: 160,
   },
   bookImage: {
     height: 200,
-    resizeMode: "cover",
+    backgroundColor: "#f9f9f9",
+  },
+  cardContent: {
+    padding: 8,
   },
   bookTitle: {
     fontSize: 14,
     fontWeight: "bold",
     marginTop: 8,
+    height: 40,
   },
   bookAuthor: {
     fontSize: 12,
@@ -243,9 +272,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   bookPrice: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#e41e31",
     fontWeight: "bold",
-    marginTop: 4,
+    marginTop: 8,
   },
 });

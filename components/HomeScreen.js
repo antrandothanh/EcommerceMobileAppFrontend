@@ -47,7 +47,7 @@ export default function HomeScreen({ navigation }) {
 
       // get self-help books
       const selfHelpBooks = response.data.result.filter(
-        (book) => book.genres[0].name === "Tâm lí - kĩ năng sống"
+        (book) => book.genres[0].name === "Tâm lý - kỹ năng sống"
       );
       setSelfHelpBooks(selfHelpBooks);
 
@@ -83,7 +83,7 @@ export default function HomeScreen({ navigation }) {
 
       // get biography and memoir books
       const biographyAndMemoirBooks = response.data.result.filter(
-        (book) => book.genres[0].name === "Tiểu sử - hồi kí"
+        (book) => book.genres[0].name === "Tiểu sử - hồi ký"
       );
       setBiographyAndMemoirBooks(biographyAndMemoirBooks);
     } catch (error) {
