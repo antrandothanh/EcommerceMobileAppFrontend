@@ -4,25 +4,28 @@ import { Appbar, Button, Menu, Text, Card } from "react-native-paper";
 import CartDrawer from "./CartDrawer";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+import { Dropdown } from "react-native-element-dropdown";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function CategoryScreen() {
-  const [menuVisible, setMenuVisible] = useState(false);
+export default function CategoryScreen({ navigation }) {
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState({
     id: 0,
     name: "Tất cả",
   });
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState(null);
   const [cartVisible, setCartVisible] = useState(false);
-  const [cartItems, setCartItems] = useState(books);
-
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [isGenresDropdownFocus, setIsGenresDropdownFocus] = useState(false);
 
   useEffect(() => {
     fetchGenres();
     fetchBooks();
   }, []);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [selectedGenre]);
 
   const fetchGenres = async () => {
     try {
@@ -44,12 +47,18 @@ export default function CategoryScreen() {
 
   const fetchBooks = async () => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/books`);
-        setBooks(response.data.result);
-      } catch (error) {
-        console.error("Cannot fetch books:", error);
+      const response = await axios.get(`${API_BASE_URL}/books`);
+      setBooks(response.data.result);
+      if (selectedGenre.id !== 0) {
+        const filteredBooks = response.data.result.filter(
+          (book) => book.genres[0].id === selectedGenre.id
+        );
+        setBooks(filteredBooks);
       }
-  }
+    } catch (error) {
+      console.error("Cannot fetch books:", error);
+    }
+  };
 
   const addToCart = (book) => {
     // add to cart
@@ -64,8 +73,11 @@ export default function CategoryScreen() {
   };
 
   const renderBookItem = ({ item }) => (
-    <TouchableOpacity style={styles.bookItem}>
-      <Card style={styles.bookCard}>
+    <View style={styles.bookItem}>
+      <Card
+        style={styles.bookCard}
+        onPress={() => navigation.navigate("BookDetail", { book: item })}
+      >
         <Card.Cover source={{ uri: item.image }} style={styles.bookImage} />
         <Card.Content>
           <Text numberOfLines={2} style={styles.bookTitle}>
@@ -75,41 +87,43 @@ export default function CategoryScreen() {
           <Text style={styles.bookPrice}>{item.price}</Text>
         </Card.Content>
       </Card>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Danh Mục" />
-        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
       </Appbar.Header>
 
       <View style={styles.categoryTypeContainer}>
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          anchor={
-            <Button
-              mode="outlined"
-              onPress={openMenu}
-              style={styles.dropdownButton}
-            >
-              {selectedGenre.name}
-            </Button>
-          }
-        >
-          {genres.map((genre) => (
-            <Menu.Item
-              key={genre.id}
-              onPress={() => {
-                setSelectedGenre(genre);
-                closeMenu();
-              }}
-              title={genre.name}
-            />
-          ))}
-        </Menu>
+        <Dropdown
+          style={[
+            styles.dropdown,
+            isGenresDropdownFocus && { borderColor: "blue" },
+          ]}
+          placeholderStyle={{ fontSize: 16 }}
+          selectedTextStyle={{ fontSize: 16 }}
+          inputSearchStyle={{ fontSize: 16 }}
+          data={genres}
+          search
+          maxHeight={300}
+          labelField="name"
+          valueField="id"
+          placeholder={!isGenresDropdownFocus ? "Chọn thể loại" : "..."}
+          searchPlaceholder="Tìm kiếm..."
+          onFocus={() => setIsGenresDropdownFocus(true)}
+          onBlur={() => setIsGenresDropdownFocus(false)}
+          onChange={(item) => {
+            const genre = {
+              id: item.id,
+              name: item.name,
+            };
+            setSelectedGenre(genre);
+            // console.log(genre);
+            setIsGenresDropdownFocus(false);
+          }}
+        />
       </View>
 
       <FlatList
@@ -146,8 +160,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#ffffff",
   },
-  dropdownButton: {
-    width: 200,
+  dropdown: {
+    height: 50,
+    width: "100%",
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 3,
+    paddingHorizontal: 15,
+    backgroundColor: "#fff",
   },
   bookList: {
     padding: 8,

@@ -12,11 +12,12 @@ import { Text, Card, Surface, Appbar } from "react-native-paper";
 import CartDrawer from "./CartDrawer";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen({ navigation }) {
   const [books, setBooks] = useState([]);
   const [cartVisible, setCartVisible] = useState(false);
-  const [cartItems, setCartItems] = useState(books);
+  const [cartItems, setCartItems] = useState([]);
   const [literatureBooks, setLiteratureBooks] = useState([]);
   const [selfHelpBooks, setSelfHelpBooks] = useState([]);
   const [businessBooks, setBusinessBooks] = useState([]);
@@ -25,7 +26,6 @@ export default function HomeScreen({ navigation }) {
   const [parentingBooks, setParentingBooks] = useState([]);
   const [learningLanguageBooks, setLearningLanguageBooks] = useState([]);
   const [biographyAndMemoirBooks, setBiographyAndMemoirBooks] = useState([]);
-
   // Add refreshing state
   const [refreshing, setRefreshing] = useState(false);
 
@@ -37,7 +37,6 @@ export default function HomeScreen({ navigation }) {
     try {
       const response = await axios.get(`${API_BASE_URL}/books`);
       setBooks(response.data.result);
-      setCartItems(response.data.result);
 
       // get literature books
       const literatureBooks = response.data.result.filter(
@@ -110,8 +109,6 @@ export default function HomeScreen({ navigation }) {
       .replace("₫", "đ");
   };
 
-  const addToCart = (book) => {};
-
   const updateCartItemQuantity = (itemId, newQuantity) => {};
 
   const removeFromCart = (itemId) => {};
@@ -159,7 +156,6 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Trang Chủ" />
-        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
       </Appbar.Header>
 
       <ScrollView
@@ -203,8 +199,6 @@ export default function HomeScreen({ navigation }) {
         visible={cartVisible}
         onClose={() => setCartVisible(false)}
         cartItems={cartItems}
-        onUpdateQuantity={updateCartItemQuantity}
-        onRemoveItem={removeFromCart}
       />
     </View>
   );

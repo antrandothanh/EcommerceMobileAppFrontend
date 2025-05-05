@@ -5,7 +5,7 @@ import HomeScreen from "./HomeScreen";
 import ProfileScreen from "./ProfileScreen";
 import CategoryScreen from "./CategoryScreen";
 import SearchScreen from "./SearchScreen";
-
+import CartScreen from "./CartScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +21,9 @@ export default function BottomTabNavigator() {
           } else if (route.name === "Tìm Kiếm") {
             iconName = focused ? "search" : "search-outline";
           } else if (route.name === "Danh Mục") {
-            iconName = focused ? "book" : "book-outline"
+            iconName = focused ? "book" : "book-outline";
+          } else if (route.name === "Giỏ hàng") {
+            iconName = focused ? "cart" : "cart-outline";
           } else if (route.name === "Hồ sơ") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -35,22 +37,27 @@ export default function BottomTabNavigator() {
       <Tab.Screen
         name="Trang Chủ"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false,  }}
       />
       <Tab.Screen
         name="Tìm Kiếm"
         component={SearchScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, }}
       />
       <Tab.Screen
         name="Danh Mục"
         component={CategoryScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, }}
+      />
+      <Tab.Screen
+        name="Giỏ hàng"
+        component={CartScreen}
+        options={{ headerShown: false, lazy: false, }}
       />
       <Tab.Screen
         name="Hồ sơ"
         component={ProfileScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, }}
       />
     </Tab.Navigator>
   );

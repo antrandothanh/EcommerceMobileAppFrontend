@@ -5,6 +5,7 @@ import SplashScreen from "./SplashScreen";
 import BottomTabNavigator from "./BottomTabNavigator";
 import EditProfileScreen from "./EditProfileScreen";
 import MyOrderScreen from "./MyOrderScreen";
+import OrderDetailScreen from "./OrderDetailScreen";
 import EditNotificationScreen from "./EditNotificationScreen";
 import SignUpScreen from "./SignUpScreen";
 import SignInScreen from "./SignInScreen";
@@ -12,6 +13,7 @@ import AdminHomeScreen from "./admin/AdminHomeScreen";
 import AdminGenreManagementScreen from "./admin/AdminGenreManagementScreen";
 import AdminBooksManagementScreen from "./admin/AdminBooksManagementScreen";
 import BookDetailScreen from "./BookDetailScreen";
+import CheckoutScreen from "./CheckoutScreen";
 
 const Stack = createStackNavigator();
 
@@ -41,6 +43,11 @@ export default function StackNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="OrderDetail"
+          component={OrderDetailScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="EditNotification"
           component={EditNotificationScreen}
           options={{ headerShown: false }}
@@ -58,6 +65,11 @@ export default function StackNavigator() {
         <Stack.Screen
           name="BookDetail"
           component={BookDetailScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Checkout"
+          component={CheckoutScreen}
           options={{ headerShown: false }}
         />
 

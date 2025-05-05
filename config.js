@@ -1,6 +1,3 @@
-// Configuration file for the Ecommerce Frontend App
-
-// API Configuration
-const API_BASE_URL = 'http://172.172.9.77:8080/api';
-
+const ipAddress = "192.168.1.226";
+const API_BASE_URL = `http://${ipAddress}:8080/api`;
 export { API_BASE_URL };

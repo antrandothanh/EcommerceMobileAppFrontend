@@ -34,7 +34,7 @@ export default function BookDetailScreen({ navigation, route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(1);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState("");
 
@@ -45,6 +45,22 @@ export default function BookDetailScreen({ navigation, route }) {
   useEffect(() => {
     fetchReviews();
   }, []);
+
+  const cartSection = async () => {
+    setCartVisible(true);
+    const token = await AsyncStorage.getItem("userToken");
+    if (token) {
+      const GET_CART_API_URL = API_BASE_URL + "/cart";
+      const cartResponse = await axios.get(GET_CART_API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCartItems(cartResponse.data.result.cartItems);
+    } else {
+      setCartItems([]);
+    }
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -109,8 +125,6 @@ export default function BookDetailScreen({ navigation, route }) {
     if (token) {
       setIsLoggedIn(true);
       const userInfoString = await AsyncStorage.getItem("userInfo");
-      // const userInfo = JSON.parse(userInfoString);
-      // console.log(userInfo);
     } else {
       setIsLoggedIn(false);
     }
@@ -123,11 +137,90 @@ export default function BookDetailScreen({ navigation, route }) {
 
   // Open quantity selection dialog
   const openQuantitySelection = () => {
-    setSelectedSize(1);
+    setSelectedQuantity(1);
     setDialogVisible(true);
   };
 
-  const addToCart = (book) => {};
+  const addToCart = async () => {
+    const user = await AsyncStorage.getItem("userInfo");
+    const token = await AsyncStorage.getItem("userToken");
+    if (user) {
+      setDialogVisible(false);
+      const GET_CART_API_URL = API_BASE_URL + "/cart";
+      const cartResponse = await axios.get(GET_CART_API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const cart = cartResponse.data.result;
+      const existingItem =
+        cart.cartItems.find((item) => item.book.id === book.id) || null;
+      if (existingItem) {
+        const UPDATE_ITEM_API_URL =
+          API_BASE_URL + "/cart-items/" + existingItem.id;
+        const updateItemResponse = await axios.put(
+          UPDATE_ITEM_API_URL,
+          {
+            quantity: existingItem.quantity + selectedQuantity,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const GET_CART_API_URL = API_BASE_URL + "/cart";
+        const getCartResponse = await axios.get(GET_CART_API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setCartItems(getCartResponse.data.result.cartItems);
+        alert("Đã thêm vào giỏ hàng");
+      } else {
+        const itemData = {
+          book: book,
+          quantity: selectedQuantity,
+        };
+        const CREATE_ITEM_API_URL = API_BASE_URL + "/cart-items";
+        const createItemResponse = await axios.post(
+          CREATE_ITEM_API_URL,
+          itemData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const cartItem = createItemResponse.data.result;
+        const GET_CART_API_URL = API_BASE_URL + "/cart";
+        const getCartResponse = await axios.get(GET_CART_API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const cart = getCartResponse.data.result;
+        const listItems = [...cart.cartItems, cartItem];
+        const UPDATE_CART_API_URL = API_BASE_URL + "/cart/" + cart.id;
+        const updateCartResponse = await axios.put(
+          UPDATE_CART_API_URL,
+          {
+            cartItems: listItems,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const updatedCart = updateCartResponse.data.result;
+        setCartItems(updatedCart.cartItems);
+        alert("Đã thêm vào giỏ hàng");
+      }
+    } else {
+      alert("Vui lòng đăng nhập để thêm vào giỏ hàng");
+    }
+  };
 
   const updateCartItemQuantity = (itemId, newQuantity) => {};
 
@@ -148,16 +241,16 @@ export default function BookDetailScreen({ navigation, route }) {
         };
         const API_URL = API_BASE_URL + "/ratings";
         const response = await axios.post(API_URL, newReviewData);
-        alert("Đánh giá của bạn đã được gửi thành công");
+        alert("Bình luận của bạn đã được gửi thành công");
         setUserComment("");
         setUserRating(0);
         await onRefresh();
       } catch (error) {
         console.error("Error sending review:", error);
-        alert("Đã có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.");
+        alert("Đã có lỗi xảy ra khi viết bình luận. Vui lòng thử lại sau.");
       }
     } else {
-      alert("Vui lòng nhập nhận xét và chọn số sao trước khi gửi");
+      alert("Vui lòng nhập bình luận và chọn số sao trước khi gửi");
     }
   };
 
@@ -165,8 +258,7 @@ export default function BookDetailScreen({ navigation, route }) {
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Tên sách" />
-        <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
+        <Appbar.Content title={book.name} />
       </Appbar.Header>
       <ScrollView
         style={styles.scrollViewContainer}
@@ -303,7 +395,7 @@ export default function BookDetailScreen({ navigation, route }) {
                     style={styles.submitButton}
                     onPress={handleSendComment}
                   >
-                    Gửi đánh giá
+                    Gửi bình luận
                   </Button>
                 </Card.Content>
               </Card>
@@ -363,17 +455,17 @@ export default function BookDetailScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.quantityButton}
               onPress={() =>
-                setSelectedSize(Math.max(1, (selectedSize || 1) - 1))
+                setSelectedQuantity(Math.max(1, (selectedQuantity || 1) - 1))
               }
             >
               <Text style={[styles.quantityButtonText, styles.minusButton]}>
                 -
               </Text>
             </TouchableOpacity>
-            <Text style={styles.quantityText}>{selectedSize || 1}</Text>
+            <Text style={styles.quantityText}>{selectedQuantity || 1}</Text>
             <TouchableOpacity
               style={styles.quantityButton}
-              onPress={() => setSelectedSize((selectedSize || 1) + 1)}
+              onPress={() => setSelectedQuantity((selectedQuantity || 1) + 1)}
             >
               <Text style={[styles.quantityButtonText, styles.plusButton]}>
                 +
@@ -383,13 +475,7 @@ export default function BookDetailScreen({ navigation, route }) {
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={() => setDialogVisible(false)}>Hủy</Button>
-          <Button
-            onPress={() => {
-              alert(`Đã thêm ${selectedSize} quyển sách vào giỏ hàng`);
-              setDialogVisible(false);
-            }}
-            mode="contained"
-          >
+          <Button onPress={addToCart} mode="contained">
             Xác nhận
           </Button>
         </Dialog.Actions>

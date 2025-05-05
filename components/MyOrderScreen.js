@@ -1,46 +1,167 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { Appbar, Card, Title, Text } from 'react-native-paper';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { Appbar, Card, Text, Chip, ActivityIndicator, Divider } from 'react-native-paper';
+import { API_BASE_URL } from '../config';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MyOrderScreen = ({ navigation }) => {
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        // Sample JSON data
-        const sampleOrders = [
-            { id: 1, date: '2023-10-01', total: 100.00 },
-            { id: 2, date: '2023-10-02', total: 150.50 },
-            { id: 3, date: '2023-10-03', total: 200.75 },
-            { id: 4, date: '2023-10-03', total: 200.75 },
-            { id: 5, date: '2023-10-03', total: 200.75 },
-            { id: 6, date: '2023-10-03', total: 200.75 },
-            { id: 7, date: '2023-10-03', total: 200.75 },
-            { id: 8, date: '2023-10-03', total: 200.75 },
-            { id: 9, date: '2023-10-03', total: 200.75 },
-            { id: 10, date: '2023-10-03', total: 200.75 },
-            { id: 11, date: '2023-10-03', total: 200.75 },
-            { id: 12, date: '2023-10-03', total: 200.75 },
-            { id: 13, date: '2023-10-03', total: 200.75 },
-            { id: 14, date: '2023-10-03', total: 200.75 },
-            { id: 15, date: '2023-10-03', total: 200.75 },
-            { id: 16, date: '2023-10-03', total: 200.75 },
-            { id: 17, date: '2023-10-03', total: 200.75 },
-            { id: 18, date: '2023-10-03', total: 200.75 },
-            { id: 19, date: '2023-10-03', total: 200.75 },
-            { id: 20, date: '2023-10-03', total: 200.75 },
-        ];
-        setOrders(sampleOrders);
+    const fetchOrders = useCallback(async () => {
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+            if (!token) {
+                setError('Vui lòng đăng nhập để xem đơn hàng');
+                setLoading(false);
+                return;
+            }
+
+            const response = await axios.get(`${API_BASE_URL}/orders`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.data) {
+                setOrders(response.data.result);
+                setError(null);
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+            setError('Không thể tải đơn hàng. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
     }, []);
 
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchOrders();
+    }, [fetchOrders]);
+
+    const formatVNCurrency = (number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+        })
+            .format(number)
+            .replace('₫', 'đ');
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return '#FFC107'; // Yellow
+            case 'PROCESSING':
+                return '#2196F3'; // Blue
+            case 'SHIPPED':
+                return '#9C27B0'; // Purple
+            case 'DELIVERED':
+                return '#4CAF50'; // Green
+            case 'CANCELLED':
+                return '#F44336'; // Red
+            default:
+                return '#757575'; // Grey
+        }
+    };
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return 'Chờ xác nhận';
+            case 'PROCESSING':
+                return 'Đang xử lý';
+            case 'SHIPPED':
+                return 'Đang giao hàng';
+            case 'DELIVERED':
+                return 'Đã giao hàng';
+            case 'CANCELLED':
+                return 'Đã hủy';
+            default:
+                return status;
+        }
+    };
+
     const renderOrderItem = ({ item }) => (
-        <Card style={styles.orderItem}>
-            <Card.Content>
-                <Text variant="titleMedium">Mã đơn hàng: {item.id}</Text>
-                <Text variant="bodyMedium">Ngày: {item.date}</Text>
-                <Text variant="bodyMedium">Tổng tiền: ${item.total}</Text>
-            </Card.Content>
-        </Card>
+        <TouchableOpacity 
+            onPress={() => {
+                navigation.navigate('OrderDetail', { order: item });
+            }}
+        >
+            <Card style={styles.orderItem}>
+                <Card.Content>
+                    <View style={styles.orderHeader}>
+                        <Text variant="titleMedium" numberOfLines={1} style={styles.orderNumber}>Đơn hàng #{item.id}</Text>
+                        <Chip 
+                            mode="flat" 
+                            style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) + '20' }]}
+                            textStyle={{ color: getStatusColor(item.status), fontWeight: 'bold' }}
+                        >
+                            {getStatusText(item.status)}
+                        </Chip>
+                    </View>
+                    
+                    <Divider style={styles.divider} />
+                    
+                    <Text variant="bodyMedium" style={styles.orderDate}>
+                        Ngày đặt: {formatDate(item.createdAt)}
+                    </Text>
+                    
+                    {item.items && (
+                        <Text variant="bodyMedium">
+                            Số lượng sản phẩm: {item.items.length}
+                        </Text>
+                    )}
+                </Card.Content>
+            </Card>
+        </TouchableOpacity>
     );
+
+    if (loading && !refreshing) {
+        return (
+            <View style={[styles.container, styles.centered]}>
+                <Appbar.Header style={styles.appbar}>
+                    <Appbar.BackAction onPress={() => navigation.goBack()} />
+                    <Appbar.Content title="Đơn hàng của tôi" />
+                </Appbar.Header>
+                <ActivityIndicator size="large" color="#007AFF" />
+            </View>
+        );
+    }
+
+    // Calculate total amount of all orders
+    const calculateTotalAmount = () => {
+        if (!orders || orders.length === 0) return 0;
+        return orders.reduce((total, order) => {
+            // Only include completed orders in the total
+            if (order.status === 'DELIVERED') {
+                return total + order.totalAmount;
+            }
+            return total;
+        }, 0);
+    };
+
+    const totalAmount = calculateTotalAmount();
 
     return (
         <View style={styles.container}>
@@ -48,13 +169,31 @@ const MyOrderScreen = ({ navigation }) => {
                 <Appbar.BackAction onPress={() => navigation.goBack()} />
                 <Appbar.Content title="Đơn hàng của tôi" />
             </Appbar.Header>
-            <FlatList
-                contentContainerStyle={styles.flatList}
-                data={orders}
-                renderItem={renderOrderItem}
-                keyExtractor={(item) => item.id.toString()}
-                showsVerticalScrollIndicator={false}
-            />
+            
+            {error ? (
+                <View style={styles.centered}>
+                    <Text variant="bodyLarge" style={styles.errorText}>{error}</Text>
+                </View>
+            ) : orders.length === 0 ? (
+                <View style={styles.centered}>
+                    <Text variant="bodyLarge">Bạn chưa có đơn hàng nào</Text>
+                </View>
+            ) : (
+                <FlatList
+                    contentContainerStyle={styles.flatList}
+                    data={orders}
+                    renderItem={renderOrderItem}
+                    keyExtractor={(item) => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#007AFF']}
+                        />
+                    }
+                />
+            )}
         </View>
     );
 };
@@ -62,7 +201,12 @@ const MyOrderScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '##f5f5f5',
+        backgroundColor: '#f5f5f5',
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     appbar: {
         elevation: 0,
@@ -70,8 +214,49 @@ const styles = StyleSheet.create({
     },
     orderItem: {
         marginBottom: 16,
+        borderRadius: 8,
     },
     flatList: {
+        padding: 16,
+        paddingBottom: 32,
+    },
+    orderHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    orderNumber: {
+        fontWeight: 'bold',
+        width: '50%',
+    },
+    statusChip: {
+        height: 28,
+    },
+    divider: {
+        marginVertical: 8,
+    },
+    orderDate: {
+        marginBottom: 4,
+        color: '#666',
+    },
+    orderFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    shippingInfo: {
+        flex: 1,
+        color: '#666',
+    },
+    totalPrice: {
+        fontWeight: 'bold',
+        color: '#e41e31',
+    },
+    errorText: {
+        color: '#e41e31',
+        textAlign: 'center',
         padding: 16,
     }
 });

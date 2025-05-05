@@ -14,74 +14,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../config";
 import axios from "axios";
 
-// Sample book data
-const sampleBooks = [
-  {
-    id: "1",
-    title: "Đắc Nhân Tâm",
-    author: "Dale Carnegie",
-    price: "86.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/df/7d/da/d340edda2b0eacb7ddc47537cddb5e08.jpg",
-  },
-  {
-    id: "2",
-    title: "Nhà Giả Kim",
-    author: "Paulo Coelho",
-    price: "79.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/66/5f/5a/7666a0fc1666b3155a0c9a612360e105.jpg",
-  },
-  {
-    id: "3",
-    title: "Cây Cam Ngọt Của Tôi",
-    author: "José Mauro de Vasconcelos",
-    price: "108.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/5e/18/24/2a6154ba08df6ce6161c13f4303fa19e.jpg",
-  },
-  {
-    id: "4",
-    title: "Tôi Thấy Hoa Vàng Trên Cỏ Xanh",
-    author: "Nguyễn Nhật Ánh",
-    price: "125.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
-  },
-  {
-    id: "5",
-    title: "Skidibi Toilet",
-    author: "Nguyễn Nhật Ánh",
-    price: "125.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
-  },
-  {
-    id: "6",
-    title: "Skidibi Toilet",
-    author: "Nguyễn Nhật Ánh",
-    price: "125.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
-  },
-  {
-    id: "7",
-    title: "Skidibi Toilet",
-    author: "Nguyễn Nhật Ánh",
-    price: "125.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
-  },
-  {
-    id: "8",
-    title: "Skidibi Toilet",
-    author: "Nguyễn Nhật Ánh",
-    price: "125.000đ",
-    image:
-      "https://salt.tikicdn.com/cache/280x280/ts/product/2e/ae/d3/2e9446ea8fec0b8a2fe00d02dc5a57a2.jpg",
-  },
-];
-
 export default function ProfileScreen({ navigation }) {
   const theme = useTheme();
 
@@ -89,13 +21,13 @@ export default function ProfileScreen({ navigation }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [cartVisible, setCartVisible] = useState(false);
-  const [cartItems, setCartItems] = useState(sampleBooks);
+  const [cartItems, setCartItems] = useState([]);
 
   const [userInfo, setUserInfo] = useState({});
 
   const menuItems = [
     {
-      title: "Chỉnh sửa thông tin cá nhân",
+      title: "Thông tin cá nhân",
       icon: "person-outline",
       onPress: () => navigation.navigate("EditProfile"),
     },
@@ -149,10 +81,8 @@ export default function ProfileScreen({ navigation }) {
         });
 
         await AsyncStorage.removeItem("userToken");
-        await AsyncStorage.removeItem("userEmail");
-
-        console.log("Logout response: ", response.data);
-
+        await AsyncStorage.removeItem("userInfo");
+        await AsyncStorage.removeItem("cart");
         setIsAuthenticated(false);
         // navigation.navigate("MainApp");
       } else {
@@ -161,7 +91,8 @@ export default function ProfileScreen({ navigation }) {
     } catch (error) {
       console.error("Error logging out:", error);
       await AsyncStorage.removeItem("userToken");
-      await AsyncStorage.removeItem("userEmail");
+      await AsyncStorage.removeItem("userInfo");
+      await AsyncStorage.removeItem("cart");
       setIsAuthenticated(false);
     }
   };
@@ -174,7 +105,10 @@ export default function ProfileScreen({ navigation }) {
         <ScrollView>
           <Surface style={styles.header} elevation={1}>
             <View style={styles.avatarContainer}>
-              <Avatar.Image size={100} source={require('../assets/DefaultAvatar.jpg')} />
+              <Avatar.Image
+                size={100}
+                source={require("../assets/DefaultAvatar.jpg")}
+              />
             </View>
             <View style={styles.userInfo}>
               <Text variant="headlineSmall" style={styles.name}>
@@ -262,12 +196,10 @@ export default function ProfileScreen({ navigation }) {
   const isLoggedIn = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log("Get token from AsyncStorage:", token);
       if (token) {
         setIsAuthenticated(true);
         const userInfoString = await AsyncStorage.getItem("userInfo");
         const userInfo = JSON.parse(userInfoString);
-        console.log("Get user info from AsyncStorage:", userInfo);
         setUserInfo(userInfo);
       } else {
         setIsAuthenticated(false);
@@ -286,9 +218,6 @@ export default function ProfileScreen({ navigation }) {
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
         <Appbar.Content title="Hồ Sơ" />
-        {isAuthenticated ? (
-          <Appbar.Action icon="cart" onPress={() => setCartVisible(true)} />
-        ) : null}
       </Appbar.Header>
 
       {renderContent()}
